@@ -1,0 +1,3280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fahm — Understand the Quran</title>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LNCECH8S39"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LNCECH8S39');
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F7F3ED;
+    --cream-dark: #EDE8DF;
+    --teal: #1D6A5C;
+    --teal-light: #E8F3F0;
+    --teal-mid: #2D8C78;
+    --gold: #B8892A;
+    --gold-light: #F5EDD8;
+    --text-primary: #1C1C1A;
+    --text-secondary: #5C574F;
+    --text-muted: #9C9488;
+    --border: rgba(92, 87, 79, 0.15);
+    --border-strong: rgba(92, 87, 79, 0.25);
+    --serif: 'Lora', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @keyframes shimmer {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.4; }
+    100% { opacity: 1; }
+  }
+
+  body {
+    background: var(--cream);
+    color: var(--text-primary);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── READING PROGRESS BAR ── */
+  #progressBar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: var(--teal);
+    z-index: 9999;
+    transition: width 0.1s linear;
+  }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 280px;
+    height: 100vh;
+    background: #F0EBE2;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0;
+    overflow-y: hidden;
+    z-index: 100;
+    transition: transform 0.25s;
+  }
+  .sidebar.collapsed { transform: translateX(-100%); }
+  .main.sidebar-collapsed { margin-left: 0; }
+
+  .sidebar-close-btn {
+    display: flex;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+  }
+
+  .sidebar-header {
+    padding: 2rem 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .logo {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: -0.01em;
+  }
+
+  .logo-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .sidebar-section-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 1.25rem 1.5rem 0.5rem;
+  }
+
+  .surah-list { padding: 0 0.75rem 2rem; flex: 1; overflow-y: auto; }
+
+  .surah-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.45rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .surah-item:hover { background: rgba(29, 106, 92, 0.06); }
+  .surah-item.active { background: var(--teal-light); }
+
+  .surah-num {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    min-width: 22px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .surah-item.active .surah-num { color: var(--teal); }
+  .surah-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
+
+  .surah-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+  }
+
+  .surah-item.active .surah-name { color: var(--teal); }
+
+  .surah-meta { font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+
+  .surah-progress {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s;
+    background: transparent;
+  }
+
+  .surah-progress.complete {
+    background: var(--teal);
+    border: 1.5px solid var(--teal);
+  }
+
+  .check-icon { width: 12px; height: 12px; stroke: white; stroke-width: 2.5; fill: none; }
+
+  /* ── MAIN READER ── */
+  .main {
+    margin-left: 280px;
+    flex: 1;
+    max-width: 760px;
+    padding: 0 2rem 6rem;
+    margin-right: auto;
+  }
+
+  /* ── TOP NAV ── */
+  .reader-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 3rem;
+    position: sticky;
+    top: 0;
+    background: var(--cream);
+    z-index: 10;
+  }
+
+  .nav-breadcrumb { font-size: 0.8rem; color: var(--text-muted); }
+  .nav-breadcrumb span { color: var(--text-secondary); font-weight: 500; }
+
+  /* ── DISPLAY SETTINGS ── */
+  .display-settings-wrap { position: relative; }
+
+  .globe-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 10px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
+    background: var(--cream);
+    cursor: pointer;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+  .globe-btn:hover { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
+  .globe-btn.active { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
+
+  .lang-tooltip {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    background: var(--text-primary);
+    color: white;
+    font-size: 0.75rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    z-index: 300;
+    pointer-events: none;
+  }
+  .lang-tooltip.visible { display: block; }
+  .lang-tooltip-arrow {
+    position: absolute;
+    top: -5px;
+    right: 14px;
+    width: 10px;
+    height: 10px;
+    background: var(--text-primary);
+    transform: rotate(45deg);
+    border-radius: 2px;
+  }
+
+  .settings-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 240px;
+    background: white;
+    border: 0.5px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 14px;
+    z-index: 200;
+  }
+  .settings-dropdown.open { display: block; }
+
+  .settings-label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .settings-divider { height: 0.5px; background: var(--border); margin: 12px 0; }
+
+  .lang-selector { display: flex; gap: 6px; margin-bottom: 4px; }
+  .lang-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--border-strong);
+    background: transparent;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+  .lang-option.active {
+    background: var(--teal-light);
+    border-color: var(--teal);
+    color: var(--teal);
+    font-weight: 500;
+  }
+  .lang-flag { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em; }
+  .lang-label { font-size: 0.78rem; }
+
+  /* ── AUTH ── */
+  .auth-nav-btn {
+    display: flex; align-items: center; justify-content: center;
+    height: 32px; padding: 0 12px;
+    border-radius: 8px; border: 1px solid var(--border-strong);
+    background: var(--cream); cursor: pointer;
+    font-size: 0.75rem; font-weight: 500; color: var(--text-secondary);
+    font-family: var(--sans); gap: 6px; flex-shrink: 0;
+  }
+  .auth-nav-btn:hover { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
+  .auth-nav-btn.signed-in { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
+  @media (max-width: 768px) {
+    .auth-nav-btn { width: 32px; height: 32px; padding: 0; }
+    .auth-nav-btn .auth-label { display: none; }
+  }
+
+  .streak-chip {
+    display: none; align-items: center;
+    height: 32px; padding: 0 9px; border-radius: 8px;
+    background: var(--cream-dark);
+    font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+    letter-spacing: -0.01em; line-height: 1; white-space: nowrap;
+    font-family: var(--sans); flex-shrink: 0;
+  }
+  .streak-chip.visible { display: flex; }
+
+  .auth-overlay {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,0.45); align-items: center; justify-content: center;
+  }
+  .auth-overlay.open { display: flex; }
+
+  .auth-modal {
+    background: white; border-radius: 16px; padding: 2rem;
+    width: 100%; max-width: 380px; margin: 1rem;
+    position: relative;
+  }
+  .auth-modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); padding: 4px;
+  }
+  .auth-modal-title { font-size: 1.1rem; font-weight: 500; color: var(--text-primary); margin: 0 0 0.5rem; }
+  .auth-modal-sub { font-size: 0.875rem; color: var(--text-muted); margin: 0 0 1.5rem; line-height: 1.5; }
+
+  .google-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--border-strong); background: white;
+    font-size: 0.875rem; font-weight: 500; color: var(--text-primary);
+    cursor: pointer; font-family: var(--sans);
+  }
+  .google-btn:hover { background: var(--cream); }
+
+  .auth-user-info { text-align: center; }
+  .auth-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--teal-light); display: flex; align-items: center;
+    justify-content: center; font-size: 1.1rem; font-weight: 500;
+    color: var(--teal); margin: 0 auto 0.75rem;
+  }
+  .auth-user-name { font-size: 0.95rem; font-weight: 500; color: var(--text-primary); margin: 0 0 0.25rem; }
+  .auth-user-email { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 1.25rem; }
+  .auth-signout-btn {
+    background: none; border: 1px solid var(--border-strong);
+    border-radius: 8px; padding: 0.5rem 1.25rem;
+    font-size: 0.8rem; color: var(--text-muted); cursor: pointer;
+    font-family: var(--sans);
+  }
+  .auth-signout-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+
+  .engage-prompt {
+    display: none; position: fixed; bottom: 5rem; right: 1.5rem;
+    background: white; border: 0.5px solid var(--border-strong);
+    border-radius: 12px; padding: 1rem 1.25rem; max-width: 260px;
+    z-index: 400; box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+  .engage-prompt.visible { display: block; }
+  .engage-close {
+    position: absolute; top: 0.6rem; right: 0.6rem;
+    background: none; border: none; cursor: pointer; color: var(--text-muted);
+  }
+  .engage-text { font-size: 0.85rem; color: var(--text-primary); margin: 0 0 0.75rem; line-height: 1.4; padding-right: 1rem; }
+  .engage-cta {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 0.6rem; border-radius: 8px;
+    background: var(--teal); color: white; border: none;
+    font-size: 0.825rem; font-weight: 500; cursor: pointer; font-family: var(--sans);
+  }
+  .engage-cta:hover { background: var(--teal-mid); }
+
+  /* ── FEEDBACK ── */
+  .feedback-fab {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    transition: bottom 0.2s;
+    z-index: 400;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 14px;
+    height: 36px;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+  .feedback-fab:hover { background: var(--teal-mid); }
+  body.player-active .feedback-fab { bottom: 4.5rem; }
+
+  .feedback-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: rgba(0,0,0,0.45);
+    align-items: center;
+    justify-content: center;
+  }
+  .feedback-overlay.open { display: flex; }
+
+  .feedback-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 420px;
+    margin: 1rem;
+    position: relative;
+  }
+  .feedback-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px;
+  }
+  .feedback-title { font-size: 1.1rem; font-weight: 500; color: var(--text-primary); margin: 0 0 0.4rem; }
+  .feedback-sub { font-size: 0.85rem; color: var(--text-muted); margin: 0 0 1.25rem; line-height: 1.5; }
+
+  .feedback-textarea {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    background: white;
+    resize: vertical;
+    min-height: 120px;
+    outline: none;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  .feedback-textarea:focus { border-color: var(--teal); }
+
+  .feedback-optional { margin-bottom: 1.25rem; }
+  .feedback-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .feedback-input {
+    width: 100%;
+    height: 36px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    background: white;
+    outline: none;
+  }
+  .feedback-input:focus { border-color: var(--teal); }
+
+  .feedback-submit {
+    width: 100%;
+    height: 40px;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+  .feedback-submit:hover { background: var(--teal-mid); }
+  .feedback-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .feedback-success {
+    text-align: center;
+    padding: 1rem 0;
+  }
+  .feedback-success-icon {
+    width: 48px; height: 48px;
+    background: var(--teal-light);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    color: var(--teal);
+  }
+
+  @media (max-width: 768px) {
+    .feedback-fab { display: none; }
+  }
+
+  .nav-feedback-btn {
+    display: none;
+  }
+  @media (max-width: 768px) {
+    .nav-feedback-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: var(--teal);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+  }
+
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row-info { flex: 1; }
+  .settings-row-name { font-size: 0.825rem; color: var(--text-primary); }
+  .settings-row-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+
+  .toggle-switch {
+    width: 34px;
+    height: 20px;
+    border-radius: 10px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 12px;
+    transition: background 0.15s;
+  }
+  .toggle-switch.on { background: var(--teal); justify-content: flex-end; }
+  .toggle-switch.off { background: #ccc; justify-content: flex-start; }
+  .toggle-switch.locked { opacity: 0.4; cursor: not-allowed; }
+  .toggle-thumb { width: 16px; height: 16px; background: white; border-radius: 50%; }
+
+  /* bottom sheet (mobile) */
+  .settings-sheet-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(0,0,0,0.4);
+  }
+  .settings-sheet-overlay.open { display: block; }
+  .settings-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 16px 16px 0 0;
+    padding: 16px 20px 32px;
+    z-index: 301;
+    transform: translateY(100%);
+    transition: transform 0.25s;
+  }
+  .settings-sheet-overlay.open .settings-sheet { transform: translateY(0); }
+  .settings-sheet-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 16px; }
+  .settings-sheet-title { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+
+  /* verse transliteration layer */
+  .verse-translit {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 8px;
+    display: none;
+    text-align: right;
+    direction: ltr;
+    unicode-bidi: plaintext;
+  }
+  .verse-secondary { display: none; margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border); font-size: 0.875rem; color: var(--text-secondary); }
+  .verse-secondary-label { font-size: 0.68rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 3px; }
+  .verse-translation { display: block; }
+  .verse-bn-primary { display: none; font-size: 0.9375rem; line-height: 1.8; color: var(--text-primary); margin-top: 4px; }
+  .verse-bn-secondary { display: none; margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border); font-size: 0.875rem; color: var(--text-secondary); }
+
+  /* ── SURAH HEADER ── */
+  .surah-header {
+    text-align: center;
+    padding: 1rem 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+
+  .surah-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.3rem 0.875rem;
+    background: var(--teal-light);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: var(--teal);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.03em;
+  }
+
+  .surah-number-badge {
+    width: 20px;
+    height: 20px;
+    background: var(--teal);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 500;
+  }
+
+  .surah-arabic-title {
+    font-size: 2rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    font-family: 'Scheherazade New', 'Traditional Arabic', serif;
+    line-height: 1.4;
+  }
+
+  .surah-english-title {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+    letter-spacing: -0.02em;
+  }
+
+  .surah-meaning {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+
+  .surah-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+  }
+
+  .stat { text-align: center; }
+
+  .stat-value { font-size: 1.1rem; font-weight: 500; color: var(--text-primary); }
+  .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+  .stat-divider { width: 1px; background: var(--border); align-self: stretch; }
+
+  /* ── BISMILLAH ── */
+  .bismillah {
+    text-align: center;
+    padding: 2rem 1rem 2.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bismillah-arabic {
+    font-size: 1.75rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+    font-family: 'Scheherazade New', 'Traditional Arabic', serif;
+    direction: rtl;
+    margin-bottom: 0.5rem;
+  }
+
+  .bismillah-translation {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ── INTRODUCTION ── */
+  .intro-block {
+    background: var(--gold-light);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 1.75rem 2rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .intro-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.875rem;
+  }
+
+  .intro-text {
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+  }
+
+  .intro-text p + p { margin-top: 1rem; }
+
+  /* ── SECTION ── */
+  .section-block {
+    margin-bottom: 4rem;
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SECTION HEADER WITH AUDIO ── */
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 0.25rem;
+  }
+
+  .section-title-group { flex: 1; }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+
+  .section-range { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── AUDIO PLAYER ── */
+  .audio-player {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+    align-items: flex-end;
+  }
+
+  .audio-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid var(--teal);
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    color: var(--teal);
+  }
+
+  .audio-btn:hover { background: var(--teal); color: white; }
+  .audio-btn.playing { background: var(--teal); color: white; }
+
+  .audio-progress-wrap {
+    width: 80px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .audio-progress-wrap.visible { display: block; }
+
+  .audio-progress-fill {
+    height: 100%;
+    background: var(--teal);
+    width: 0%;
+    transition: width 0.3s linear;
+    border-radius: 2px;
+  }
+
+  /* ── MOBILE MINI PLAYER ── */
+  #miniPlayer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: white;
+    border-top: 1px solid var(--border);
+    padding: 0.875rem 1.5rem;
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    z-index: 200;
+  }
+
+  #miniPlayer.visible { display: flex; }
+
+  .mini-player-info { flex: 1; min-width: 0; }
+  .mini-player-title { font-size: 0.8rem; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini-player-sub { font-size: 0.7rem; color: var(--text-muted); }
+
+  .mini-player-bar {
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+    position: absolute;
+    bottom: 0; left: 0;
+  }
+
+  .mini-player-fill {
+    height: 100%;
+    background: var(--teal);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+
+  .mini-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--teal);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── CONNECTION ── */
+  .connection-block {
+    padding: 0.875rem 1rem;
+    background: var(--cream-dark);
+    border-radius: 8px;
+    margin-bottom: 1.25rem;
+  }
+
+  .connection-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.375rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .connection-body {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+  }
+
+  .connection-icon { width: 12px; height: 12px; stroke: var(--text-muted); stroke-width: 2; fill: none; }
+
+  /* ── BRIDGE ── */
+  .bridge-block {
+    padding: 1.25rem 1.5rem;
+    background: var(--teal-light);
+    border-left: 3px solid var(--teal-mid);
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 1.25rem;
+  }
+
+  .bridge-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal-mid);
+    margin-bottom: 0.5rem;
+  }
+
+  .bridge-text { font-size: 0.9375rem; color: var(--text-primary); line-height: 1.75; }
+
+  /* ── REVELATION CONTEXT ── */
+  .context-block {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    background: white;
+  }
+
+  .context-icon { width: 16px; height: 16px; stroke: var(--gold); stroke-width: 2; fill: none; flex-shrink: 0; margin-top: 3px; }
+
+  .context-text { font-size: 0.9375rem; color: var(--text-secondary); line-height: 1.75; }
+
+  .context-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 3px;
+  }
+
+  /* ── VERSES ── */
+  .verses-block {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+    margin-bottom: 1rem;
+  }
+
+  .verse-row {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .verse-row:last-child { border-bottom: none; }
+
+  .verse-row.playing {
+    background: var(--teal-light);
+    transition: background 0.3s ease;
+  }
+
+  .verse-row.playing .verse-arabic { color: var(--teal); }
+  .verse-row.playing .verse-key { color: var(--teal-mid); }
+
+  .verse-key { font-size: 0.7rem; color: var(--text-muted); font-variant-numeric: tabular-nums; padding-top: 3px; min-width: 32px; }
+
+  .verse-arabic {
+    font-size: 1.4rem;
+    line-height: 2;
+    text-align: right;
+    color: var(--text-primary);
+    font-family: 'Scheherazade New', 'Traditional Arabic', serif;
+    margin-bottom: 0.5rem;
+    direction: rtl;
+  }
+
+  .verse-translation {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+  }
+
+  .verse-secondary-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 3rem 0;
+  }
+
+  .section-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .section-divider-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong); }
+
+  /* ── MARK COMPLETE ── */
+  .mark-complete-block {
+    text-align: center;
+    padding: 2.5rem 2rem;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  .mark-complete-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1.75rem;
+    border: 1.5px solid var(--teal);
+    border-radius: 8px;
+    background: none;
+    color: var(--teal);
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mark-complete-btn:hover { background: var(--teal); color: white; }
+
+  .mark-complete-btn.done {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+    cursor: default;
+  }
+
+  .completion-message {
+    margin-top: 1.25rem;
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    display: none;
+  }
+
+  .completion-message.visible { display: block; }
+
+  .next-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 1.25rem;
+    padding: 0.65rem 1.25rem;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: none;
+  }
+
+  .next-btn.visible { display: inline-flex; }
+  .next-btn:hover { background: var(--teal-mid); }
+
+  /* ── MOBILE ── */
+  .mobile-toggle {
+    display: flex;
+    position: static;
+    flex-shrink: 0;
+    z-index: 200;
+    width: 36px;
+    height: 36px;
+    background: white;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+  }
+  .mobile-toggle.hidden { display: none; }
+
+  @media (max-width: 768px) {
+    .mobile-toggle { display: flex; }
+    .mobile-toggle.hidden { display: none; }
+    .sidebar { transform: translateX(-100%); transition: transform 0.25s; width: 280px; }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; z-index: 99; background: rgba(0,0,0,0.35); }
+    .sidebar-overlay.visible { display: block; }
+    .sidebar-close-btn { display: flex; }
+    .main { margin-left: 0; padding: 1rem 1.25rem 6rem; }
+    .surah-arabic-title { font-size: 1.6rem; }
+    .surah-english-title { font-size: 1.15rem; }
+    .surah-meaning { margin-bottom: 0.75rem; font-size: 0.8rem; }
+    .surah-badge { margin-bottom: 0.5rem; }
+    .surah-header { padding: 0.5rem 0 0.75rem; margin-bottom: 1rem; }
+    .reader-nav { padding: 0.75rem 0; margin-bottom: 1rem; }
+    .verse-translation { font-size: 1rem; }
+    .verse-arabic { font-size: 1.25rem; }
+    .surah-stats { gap: 1.25rem; }
+    .stat-value { font-size: 0.9rem; }
+
+    /* Mobile surah list screen */
+    #mobileListScreen {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: var(--cream);
+    }
+
+    #mobileReader { display: none; }
+    #mobileReader.visible { display: block; }
+
+    .mobile-list-header {
+      padding: 2rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: #F0EBE2;
+    }
+
+    .mobile-list-surahs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem 0.75rem 3rem;
+      background: #F0EBE2;
+    }
+
+    .mobile-surah-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0.75rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: background 0.15s;
+    }
+
+    .mobile-surah-item:hover { background: rgba(29, 106, 92, 0.06); }
+
+    .mobile-back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.4rem 0;
+      background: none;
+      border: none;
+      font-family: var(--sans);
+      font-size: 0.875rem;
+      color: var(--teal);
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  /* Hide mobile screens on desktop */
+  @media (min-width: 769px) {
+    #mobileListScreen { display: none !important; }
+    #mobileReader { display: block !important; }
+    .mobile-back-btn { display: none !important; }
+    #desktopBreadcrumb { display: inline !important; }
+  }
+
+  /* Global back button base style */
+  .mobile-back-btn {
+    align-items: center;
+    gap: 6px;
+    padding: 0.4rem 0;
+    background: none;
+    border: none;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    color: var(--teal);
+    cursor: pointer;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="progressBar"></div>
+
+<!-- AUTH MODAL -->
+<div class="auth-overlay" id="authOverlay" onclick="closeAuthModal()">
+  <div class="auth-modal" onclick="event.stopPropagation()">
+    <button class="auth-modal-close" onclick="closeAuthModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+      </svg>
+    </button>
+    <div id="authModalContent"></div>
+  </div>
+</div>
+
+<!-- ENGAGEMENT PROMPT -->
+<div class="engage-prompt" id="engagePrompt">
+  <button class="engage-close" onclick="dismissEngagePrompt()">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
+    </svg>
+  </button>
+  <div class="engage-text">Save your progress across devices</div>
+  <button class="engage-cta" onclick="showAuthModal('prompt')">Sign in with Google</button>
+</div>
+
+<!-- SETTINGS BOTTOM SHEET (mobile) -->
+<div class="settings-sheet-overlay" id="settingsSheetOverlay" onclick="closeSettingsPanel()">
+  <div class="settings-sheet" onclick="event.stopPropagation()">
+    <div class="settings-sheet-handle"></div>
+    <div class="settings-sheet-title">Display</div>
+    <div id="settingsSheetRows"></div>
+  </div>
+</div>
+
+<!-- MOBILE SURAH LIST SCREEN -->
+<div id="mobileListScreen">
+  <div class="mobile-list-header">
+    <div class="logo">فَهْم Fahm</div>
+    <div class="logo-sub" style="margin-top:4px;">Understand the message</div>
+  </div>
+  <div style="display:none" id="mobileListLabel"></div>
+  <div class="mobile-list-surahs" id="mobileSurahList"></div>
+  <div style="padding: 1.5rem; border-top: 1px solid var(--border); display:flex; gap: 1rem; font-size: 0.72rem; color: var(--text-muted);">
+    <a href="/privacy" style="color:var(--text-muted); text-decoration:none;">Privacy</a>
+    <a href="/terms" style="color:var(--text-muted); text-decoration:none;">Terms</a>
+    <a href="#" onclick="openFeedback(); return false;" style="color:var(--text-muted); text-decoration:none;">Feedback</a>
+  </div>
+</div>
+
+<!-- DESKTOP APP + MOBILE READER -->
+<div id="mobileReader">
+<div class="app">
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo" onclick="goHome()" style="cursor:pointer;">فَهْم Fahm</div>
+      <div class="logo-sub">Understand the message</div>
+      <button class="sidebar-close-btn" onclick="closeSidebar()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+        </svg>
+      </button>
+    </div>
+    <div class="sidebar-section-label" id="sidebarLabel" style="display:none"></div>
+    <div class="surah-list" id="surahList"></div>
+    <div style="flex-shrink:0; padding: 1.5rem; border-top: 1px solid var(--border);">
+      <div style="display:flex; gap: 1rem; font-size: 0.72rem; color: var(--text-muted);">
+        <a href="/privacy" style="color:var(--text-muted); text-decoration:none;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--text-muted)'">Privacy</a>
+        <a href="/terms" style="color:var(--text-muted); text-decoration:none;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--text-muted)'">Terms</a>
+        <a href="#" onclick="toggleFeedback(); return false;" style="color:var(--text-muted); text-decoration:none;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--text-muted)'">Feedback</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN READER -->
+  <main class="main" id="mainReader">
+    <div id="readerContent"></div>
+  </main>
+
+</div>
+
+<!-- MOBILE MINI PLAYER -->
+<div id="miniPlayer">
+  <div class="mini-player-info">
+    <div class="mini-player-title" id="miniTitle">—</div>
+    <div class="mini-player-sub" id="miniSub">Abu Bakr al-Shatri</div>
+  </div>
+  <button class="mini-btn" onclick="toggleMiniPlay()">
+    <svg id="miniPlayIcon" width="16" height="16" viewBox="0 0 16 16" fill="white">
+      <polygon points="4,2 14,8 4,14"/>
+    </svg>
+  </button>
+  <div class="mini-player-bar"><div class="mini-player-fill" id="miniProgressFill"></div></div>
+</div>
+<!-- end mobileReader -->
+
+<!-- FEEDBACK BUTTON (body-level so it works from both list and reader screens) -->
+<button class="feedback-fab" id="feedbackFab" onclick="toggleFeedback()" aria-label="Send feedback">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+    <path d="M14 10c0 .6-.4 1-1 1H4l-3 3V2c0-.6.4-1 1-1h11c.6 0 1 .4 1 1v8z"/>
+  </svg>
+  <span>Feedback</span>
+</button>
+
+<!-- FEEDBACK MODAL -->
+<div class="feedback-overlay" id="feedbackOverlay" onclick="closeFeedback()">
+  <div class="feedback-modal" onclick="event.stopPropagation()">
+    <button class="feedback-modal-close" onclick="closeFeedback()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+      </svg>
+    </button>
+    <div id="feedbackContent">
+      <p class="feedback-title">Share your feedback</p>
+      <p class="feedback-sub">Help us improve Fahm. All feedback is read personally.</p>
+      <textarea id="feedbackText" class="feedback-textarea" placeholder="What's on your mind? What could be better? What do you love?" rows="5"></textarea>
+      <div class="feedback-optional">
+        <label class="feedback-checkbox-row">
+          <input type="checkbox" id="feedbackWantReply">
+          <span>I'd like to hear back</span>
+        </label>
+        <div id="feedbackContactFields" style="display:none; margin-top:10px; flex-direction:column; gap:8px;">
+          <input type="text" id="feedbackName" class="feedback-input" placeholder="Your name (optional)">
+          <input type="email" id="feedbackEmail" class="feedback-input" placeholder="Email address (optional)">
+        </div>
+      </div>
+      <button class="feedback-submit" onclick="submitFeedback()">Send feedback</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const REVELATION_PERIOD = {
+  makki_early: 'Makkan · Early',
+  makki_mid: 'Makkan · Middle',
+  makki_late: 'Makkan · Late',
+  madani_early: 'Early Madinan',
+  madani_late: 'Late Madinan',
+};
+
+function getRevelationPeriod(surahNum, type) {
+  if (type === 'Madani') {
+    return surahNum <= 9 ? 'Early Madinan' : 'Late Madinan';
+  }
+  if (surahNum >= 87) return 'Early Makkan';
+  if (surahNum >= 50) return 'Middle Makkan';
+  return 'Late Makkan';
+}
+
+// ── SUPABASE CONFIG ──────────────────────────────────────────
+const SUPABASE_URL = 'https://wdpuabsupdvtgbywzvue.supabase.co';
+const SUPABASE_ANON_KEY = '{{SUPABASE_ANON_KEY}}';
+const SB_HEADERS = {
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+  'Content-Type': 'application/json'
+};
+
+async function sbFetch(endpoint) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, { headers: SB_HEADERS });
+  if (!r.ok) throw new Error(`Supabase error: ${r.status}`);
+  return r.json();
+}
+
+// Lightweight surah list — just metadata for sidebar/list rendering
+// Full content (sections, verses) is fetched on demand per surah
+const SURAHS = [
+  { number: 1,   name: "Al-Fatihah",     arabic: "الفاتحة",      meaning: "The Opening",              verses: 7,   type: "Makki" },
+  { number: 2,   name: "Al-Baqarah",     arabic: "البقرة",       meaning: "The Cow",                  verses: 286, type: "Madani" },
+  { number: 3,   name: "Ali 'Imran",     arabic: "آل عمران",     meaning: "Family of Imran",          verses: 200, type: "Madani" },
+  { number: 4,   name: "An-Nisa",        arabic: "النساء",       meaning: "The Women",                verses: 176, type: "Madani" },
+  { number: 5,   name: "Al-Ma'idah",     arabic: "المائدة",      meaning: "The Table Spread",         verses: 120, type: "Madani" },
+  { number: 6,   name: "Al-An'am",       arabic: "الأنعام",      meaning: "The Cattle",               verses: 165, type: "Makki" },
+  { number: 7,   name: "Al-A'raf",       arabic: "الأعراف",      meaning: "The Heights",              verses: 206, type: "Makki" },
+  { number: 8,   name: "Al-Anfal",       arabic: "الأنفال",      meaning: "The Spoils of War",        verses: 75,  type: "Madani" },
+  { number: 9,   name: "At-Tawbah",      arabic: "التوبة",       meaning: "The Repentance",           verses: 129, type: "Madani" },
+  { number: 10,  name: "Yunus",          arabic: "يونس",         meaning: "Jonah",                    verses: 109, type: "Makki" },
+  { number: 11,  name: "Hud",            arabic: "هود",          meaning: "Hud",                      verses: 123, type: "Makki" },
+  { number: 12,  name: "Yusuf",          arabic: "يوسف",         meaning: "Joseph",                   verses: 111, type: "Makki" },
+  { number: 13,  name: "Ar-Ra'd",        arabic: "الرعد",        meaning: "The Thunder",              verses: 43,  type: "Madani" },
+  { number: 14,  name: "Ibrahim",        arabic: "إبراهيم",      meaning: "Abraham",                  verses: 52,  type: "Makki" },
+  { number: 15,  name: "Al-Hijr",        arabic: "الحجر",        meaning: "The Rocky Tract",          verses: 99,  type: "Makki" },
+  { number: 16,  name: "An-Nahl",        arabic: "النحل",        meaning: "The Bee",                  verses: 128, type: "Makki" },
+  { number: 17,  name: "Al-Isra",        arabic: "الإسراء",      meaning: "The Night Journey",        verses: 111, type: "Makki" },
+  { number: 18,  name: "Al-Kahf",        arabic: "الكهف",        meaning: "The Cave",                 verses: 110, type: "Makki" },
+  { number: 19,  name: "Maryam",         arabic: "مريم",         meaning: "Mary",                     verses: 98,  type: "Makki" },
+  { number: 20,  name: "Taha",           arabic: "طه",           meaning: "Ta-Ha",                    verses: 135, type: "Makki" },
+  { number: 21,  name: "Al-Anbya",       arabic: "الأنبياء",     meaning: "The Prophets",             verses: 112, type: "Makki" },
+  { number: 22,  name: "Al-Hajj",        arabic: "الحج",         meaning: "The Pilgrimage",           verses: 78,  type: "Madani" },
+  { number: 23,  name: "Al-Mu'minun",    arabic: "المؤمنون",     meaning: "The Believers",            verses: 118, type: "Makki" },
+  { number: 24,  name: "An-Nur",         arabic: "النور",        meaning: "The Light",                verses: 64,  type: "Madani" },
+  { number: 25,  name: "Al-Furqan",      arabic: "الفرقان",      meaning: "The Criterion",            verses: 77,  type: "Makki" },
+  { number: 26,  name: "Ash-Shu'ara",    arabic: "الشعراء",      meaning: "The Poets",                verses: 227, type: "Makki" },
+  { number: 27,  name: "An-Naml",        arabic: "النمل",        meaning: "The Ant",                  verses: 93,  type: "Makki" },
+  { number: 28,  name: "Al-Qasas",       arabic: "القصص",        meaning: "The Stories",              verses: 88,  type: "Makki" },
+  { number: 29,  name: "Al-'Ankabut",    arabic: "العنكبوت",     meaning: "The Spider",               verses: 69,  type: "Makki" },
+  { number: 30,  name: "Ar-Rum",         arabic: "الروم",        meaning: "The Romans",               verses: 60,  type: "Makki" },
+  { number: 31,  name: "Luqman",         arabic: "لقمان",        meaning: "Luqman",                   verses: 34,  type: "Makki" },
+  { number: 32,  name: "As-Sajdah",      arabic: "السجدة",       meaning: "The Prostration",          verses: 30,  type: "Makki" },
+  { number: 33,  name: "Al-Ahzab",       arabic: "الأحزاب",      meaning: "The Combined Forces",      verses: 73,  type: "Madani" },
+  { number: 34,  name: "Saba",           arabic: "سبأ",          meaning: "Sheba",                    verses: 54,  type: "Makki" },
+  { number: 35,  name: "Fatir",          arabic: "فاطر",         meaning: "Originator",               verses: 45,  type: "Makki" },
+  { number: 36,  name: "Ya-Sin",         arabic: "يس",           meaning: "Ya-Sin",                   verses: 83,  type: "Makki" },
+  { number: 37,  name: "As-Saffat",      arabic: "الصافات",      meaning: "Those Ranged in Ranks",    verses: 182, type: "Makki" },
+  { number: 38,  name: "Sad",            arabic: "ص",            meaning: "Sad",                      verses: 88,  type: "Makki" },
+  { number: 39,  name: "Az-Zumar",       arabic: "الزمر",        meaning: "The Groups",               verses: 75,  type: "Makki" },
+  { number: 40,  name: "Ghafir",         arabic: "غافر",         meaning: "The Forgiver",             verses: 85,  type: "Makki" },
+  { number: 41,  name: "Fussilat",       arabic: "فصلت",         meaning: "Explained in Detail",      verses: 54,  type: "Makki" },
+  { number: 42,  name: "Ash-Shuraa",     arabic: "الشورى",       meaning: "The Consultation",         verses: 53,  type: "Makki" },
+  { number: 43,  name: "Az-Zukhruf",     arabic: "الزخرف",       meaning: "The Ornaments of Gold",    verses: 89,  type: "Makki" },
+  { number: 44,  name: "Ad-Dukhan",      arabic: "الدخان",       meaning: "The Smoke",                verses: 59,  type: "Makki" },
+  { number: 45,  name: "Al-Jathiyah",    arabic: "الجاثية",      meaning: "The Crouching",            verses: 37,  type: "Makki" },
+  { number: 46,  name: "Al-Ahqaf",       arabic: "الأحقاف",      meaning: "The Wind-Curved Sandhills",verses: 35,  type: "Makki" },
+  { number: 47,  name: "Muhammad",       arabic: "محمد",         meaning: "Muhammad",                 verses: 38,  type: "Madani" },
+  { number: 48,  name: "Al-Fath",        arabic: "الفتح",        meaning: "The Victory",              verses: 29,  type: "Madani" },
+  { number: 49,  name: "Al-Hujurat",     arabic: "الحجرات",      meaning: "The Rooms",                verses: 18,  type: "Madani" },
+  { number: 50,  name: "Qaf",            arabic: "ق",            meaning: "Qaf",                      verses: 45,  type: "Makki" },
+  { number: 51,  name: "Adh-Dhariyat",   arabic: "الذاريات",     meaning: "The Winnowing Winds",      verses: 60,  type: "Makki" },
+  { number: 52,  name: "At-Tur",         arabic: "الطور",        meaning: "The Mount",                verses: 49,  type: "Makki" },
+  { number: 53,  name: "An-Najm",        arabic: "النجم",        meaning: "The Star",                 verses: 62,  type: "Makki" },
+  { number: 54,  name: "Al-Qamar",       arabic: "القمر",        meaning: "The Moon",                 verses: 55,  type: "Makki" },
+  { number: 55,  name: "Ar-Rahman",      arabic: "الرحمن",       meaning: "The Beneficent",           verses: 78,  type: "Madani" },
+  { number: 56,  name: "Al-Waqi'ah",     arabic: "الواقعة",      meaning: "The Inevitable",           verses: 96,  type: "Makki" },
+  { number: 57,  name: "Al-Hadid",       arabic: "الحديد",       meaning: "The Iron",                 verses: 29,  type: "Madani" },
+  { number: 58,  name: "Al-Mujadila",    arabic: "المجادلة",     meaning: "The Pleading Woman",       verses: 22,  type: "Madani" },
+  { number: 59,  name: "Al-Hashr",       arabic: "الحشر",        meaning: "The Exile",                verses: 24,  type: "Madani" },
+  { number: 60,  name: "Al-Mumtahanah",  arabic: "الممتحنة",     meaning: "She That is to be Examined",verses: 13, type: "Madani" },
+  { number: 61,  name: "As-Saf",         arabic: "الصف",         meaning: "The Ranks",                verses: 14,  type: "Madani" },
+  { number: 62,  name: "Al-Jumu'ah",     arabic: "الجمعة",       meaning: "Friday",                   verses: 11,  type: "Madani" },
+  { number: 63,  name: "Al-Munafiqun",   arabic: "المنافقون",    meaning: "The Hypocrites",           verses: 11,  type: "Madani" },
+  { number: 64,  name: "At-Taghabun",    arabic: "التغابن",      meaning: "Mutual Disillusion",       verses: 18,  type: "Madani" },
+  { number: 65,  name: "At-Talaq",       arabic: "الطلاق",       meaning: "Divorce",                  verses: 12,  type: "Madani" },
+  { number: 66,  name: "At-Tahrim",      arabic: "التحريم",      meaning: "The Prohibition",          verses: 12,  type: "Madani" },
+  { number: 67,  name: "Al-Mulk",        arabic: "الملك",        meaning: "The Sovereignty",          verses: 30,  type: "Makki" },
+  { number: 68,  name: "Al-Qalam",       arabic: "القلم",        meaning: "The Pen",                  verses: 52,  type: "Makki" },
+  { number: 69,  name: "Al-Haqqah",      arabic: "الحاقة",       meaning: "The Inevitable",           verses: 52,  type: "Makki" },
+  { number: 70,  name: "Al-Ma'arij",     arabic: "المعارج",      meaning: "The Ascending Stairways",  verses: 44,  type: "Makki" },
+  { number: 71,  name: "Nuh",            arabic: "نوح",          meaning: "Noah",                     verses: 28,  type: "Makki" },
+  { number: 72,  name: "Al-Jinn",        arabic: "الجن",         meaning: "The Jinn",                 verses: 28,  type: "Makki" },
+  { number: 73,  name: "Al-Muzzammil",   arabic: "المزمل",       meaning: "The Enshrouded One",       verses: 20,  type: "Makki" },
+  { number: 74,  name: "Al-Muddaththir", arabic: "المدثر",       meaning: "The Cloaked One",          verses: 56,  type: "Makki" },
+  { number: 75,  name: "Al-Qiyamah",     arabic: "القيامة",      meaning: "The Resurrection",         verses: 40,  type: "Makki" },
+  { number: 76,  name: "Al-Insan",       arabic: "الإنسان",      meaning: "The Man",                  verses: 31,  type: "Madani" },
+  { number: 77,  name: "Al-Mursalat",    arabic: "المرسلات",     meaning: "The Emissaries",           verses: 50,  type: "Makki" },
+  { number: 78,  name: "An-Naba",        arabic: "النبأ",        meaning: "The Announcement",         verses: 40,  type: "Makki" },
+  { number: 79,  name: "An-Nazi'at",     arabic: "النازعات",     meaning: "Those Who Pull Out",       verses: 46,  type: "Makki" },
+  { number: 80,  name: "'Abasa",         arabic: "عبس",          meaning: "He Frowned",               verses: 42,  type: "Makki" },
+  { number: 81,  name: "At-Takwir",      arabic: "التكوير",      meaning: "The Folding Up",           verses: 29,  type: "Makki" },
+  { number: 82,  name: "Al-Infitar",     arabic: "الإنفطار",     meaning: "The Cleaving",             verses: 19,  type: "Makki" },
+  { number: 83,  name: "Al-Mutaffifin",  arabic: "المطففين",     meaning: "The Defrauders",           verses: 36,  type: "Makki" },
+  { number: 84,  name: "Al-Inshiqaq",    arabic: "الانشقاق",     meaning: "The Splitting Open",       verses: 25,  type: "Makki" },
+  { number: 85,  name: "Al-Buruj",       arabic: "البروج",       meaning: "The Constellations",       verses: 22,  type: "Makki" },
+  { number: 86,  name: "At-Tariq",       arabic: "الطارق",       meaning: "The Nightcomer",           verses: 17,  type: "Makki" },
+  { number: 87,  name: "Al-A'la",        arabic: "الأعلى",       meaning: "The Most High",            verses: 19,  type: "Makki" },
+  { number: 88,  name: "Al-Ghashiyah",   arabic: "الغاشية",      meaning: "The Overwhelming",         verses: 26,  type: "Makki" },
+  { number: 89,  name: "Al-Fajr",        arabic: "الفجر",        meaning: "The Dawn",                 verses: 30,  type: "Makki" },
+  { number: 90,  name: "Al-Balad",       arabic: "البلد",        meaning: "The City",                 verses: 20,  type: "Makki" },
+  { number: 91,  name: "Ash-Shams",      arabic: "الشمس",        meaning: "The Sun",                  verses: 15,  type: "Makki" },
+  { number: 92,  name: "Al-Layl",        arabic: "الليل",        meaning: "The Night",                verses: 21,  type: "Makki" },
+  { number: 93,  name: "Ad-Duhaa",       arabic: "الضحى",        meaning: "The Morning Brightness",   verses: 11,  type: "Makki" },
+  { number: 94,  name: "Ash-Sharh",      arabic: "الشرح",        meaning: "The Relief",               verses: 8,   type: "Makki" },
+  { number: 95,  name: "At-Tin",         arabic: "التين",        meaning: "The Fig",                  verses: 8,   type: "Makki" },
+  { number: 96,  name: "Al-'Alaq",       arabic: "العلق",        meaning: "The Clot",                 verses: 19,  type: "Makki" },
+  { number: 97,  name: "Al-Qadr",        arabic: "القدر",        meaning: "The Power",                verses: 5,   type: "Makki" },
+  { number: 98,  name: "Al-Bayyinah",    arabic: "البينة",       meaning: "The Clear Proof",          verses: 8,   type: "Madani" },
+  { number: 99,  name: "Az-Zalzalah",    arabic: "الزلزلة",      meaning: "The Earthquake",           verses: 8,   type: "Madani" },
+  { number: 100, name: "Al-'Adiyat",     arabic: "العاديات",     meaning: "The Chargers",             verses: 11,  type: "Makki" },
+  { number: 101, name: "Al-Qari'ah",     arabic: "القارعة",      meaning: "The Striking Hour",        verses: 11,  type: "Makki" },
+  { number: 102, name: "At-Takathur",    arabic: "التكاثر",      meaning: "The Rivalry in World Increase", verses: 8, type: "Makki" },
+  { number: 103, name: "Al-'Asr",        arabic: "العصر",        meaning: "The Declining Day",        verses: 3,   type: "Makki" },
+  { number: 104, name: "Al-Humazah",     arabic: "الهمزة",       meaning: "The Slanderer",            verses: 9,   type: "Makki" },
+  { number: 105, name: "Al-Fil",         arabic: "الفيل",        meaning: "The Elephant",             verses: 5,   type: "Makki" },
+  { number: 106, name: "Quraysh",        arabic: "قريش",         meaning: "Quraysh",                  verses: 4,   type: "Makki" },
+  { number: 107, name: "Al-Ma'un",       arabic: "الماعون",      meaning: "The Small Kindnesses",     verses: 7,   type: "Makki" },
+  { number: 108, name: "Al-Kawthar",     arabic: "الكوثر",       meaning: "The Abundance",            verses: 3,   type: "Makki" },
+  { number: 109, name: "Al-Kafirun",     arabic: "الكافرون",     meaning: "The Disbelievers",         verses: 6,   type: "Makki" },
+  { number: 110, name: "An-Nasr",        arabic: "النصر",        meaning: "The Divine Support",       verses: 3,   type: "Madani" },
+  { number: 111, name: "Al-Masad",       arabic: "المسد",        meaning: "The Palm Fibre",           verses: 5,   type: "Makki" },
+  { number: 112, name: "Al-Ikhlas",      arabic: "الإخلاص",      meaning: "The Sincerity",            verses: 4,   type: "Makki" },
+  { number: 113, name: "Al-Falaq",       arabic: "الفلق",        meaning: "The Daybreak",             verses: 5,   type: "Makki" },
+  { number: 114, name: "An-Nas",         arabic: "الناس",        meaning: "Mankind",                  verses: 6,   type: "Makki" },
+];
+
+
+// Juz number for each surah (standard 30-juz division)
+const SURAH_JUZ = {
+  1:1,2:1,3:2,4:2,5:2,6:2,7:2,8:2,9:2,10:2,
+  11:2,12:2,13:2,14:2,15:2,16:2,17:2,18:2,19:2,20:2,
+  21:2,22:2,23:2,24:2,25:2,26:2,27:2,28:2,29:2,30:2,
+  31:2,32:2,33:2,34:2,35:2,36:2,37:2,38:2,39:2,40:2,
+  41:2,42:2,43:2,44:2,45:2,46:2,47:2,48:2,49:2,50:2,
+  // More precise mapping
+};
+
+// Precise juz boundaries (surah: juz)
+const JUZ_MAP = {
+  1:1, 2:1,
+  3:3, 4:3,
+  5:6, 6:7, 7:7,
+  8:9, 9:10, 10:11,
+  11:11, 12:12, 13:12, 14:13, 15:13, 16:14, 17:15,
+  18:15, 19:16, 20:16, 21:17, 22:17, 23:18, 24:18,
+  25:18, 26:19, 27:19, 28:20, 29:20, 30:21, 31:21,
+  32:21, 33:21, 34:22, 35:22, 36:22, 37:23, 38:23,
+  39:23, 40:24, 41:24, 42:25, 43:25, 44:25, 45:25,
+  46:26, 47:26, 48:26, 49:26, 50:26, 51:27, 52:27,
+  53:27, 54:27, 55:27, 56:27, 57:27, 58:28, 59:28,
+  60:28, 61:28, 62:28, 63:28, 64:28, 65:28, 66:28,
+  67:29, 68:29, 69:29, 70:29, 71:29, 72:29, 73:29,
+  74:29, 75:29, 76:29, 77:29, 78:30, 79:30, 80:30,
+  81:30, 82:30, 83:30, 84:30, 85:30, 86:30, 87:30,
+  88:30, 89:30, 90:30, 91:30, 92:30, 93:30, 94:30,
+  95:30, 96:30, 97:30, 98:30, 99:30, 100:30, 101:30,
+  102:30, 103:30, 104:30, 105:30, 106:30, 107:30, 108:30,
+  109:30, 110:30, 111:30, 112:30, 113:30, 114:30
+};
+
+function getJuzLabel(surahNum) {
+  const juz = JUZ_MAP[surahNum] || 1;
+  return langPrefs.lang === 'bn' ? `জুজ ${toBengaliNumerals(juz)}` : `Juz ${juz}`;
+}
+
+// In-memory cache for fully loaded surahs
+const surahCache = {};
+
+async function fetchSurahFromDB(num) {
+  if (surahCache[num]) return surahCache[num];
+
+  // Fetch surah metadata + introductions
+  const [surahRows, sectionRows, verseRows] = await Promise.all([
+    sbFetch(`fahm_surahs?number=eq.${num}&select=*`),
+    sbFetch(`fahm_sections?surah_number=eq.${num}&select=*&order=section_number.asc`),
+    sbFetch(`fahm_verses?surah_number=eq.${num}&select=*&order=verse_number.asc`)
+  ]);
+
+  const surahMeta = SURAHS.find(s => s.number === num) || {};
+  const dbSurah = surahRows[0] || {};
+
+  // Index verses by verse_key
+  const verseIndex = {};
+  for (const v of verseRows) verseIndex[v.verse_key] = v;
+
+  const sections = sectionRows.map(sec => {
+    const keys = sec.verse_keys || [];
+    return {
+      num:        sec.section_number,
+      title:      sec.title_en || '',
+      title_bn:   sec.title_bn || '',
+      range:      sec.verse_range || '',
+      keys:       keys,
+      context:    sec.context_en || '',
+      context_bn: sec.context_bn || '',
+      bridge:     sec.bridge_en || '',
+      bridge_bn:  sec.bridge_bn || '',
+      arabic:       keys.map(k => verseIndex[k]?.arabic || ''),
+      translation:  keys.map(k => verseIndex[k]?.abdel_haleem || ''),
+      sahih:        keys.map(k => verseIndex[k]?.sahih_international || ''),
+      translit:     keys.map(k => verseIndex[k]?.transliteration || ''),
+      bn_taisirul:  keys.map(k => verseIndex[k]?.bn_taisirul || ''),
+      bn_rawai:     keys.map(k => verseIndex[k]?.bn_rawai || ''),
+    };
+  });
+
+  const full = Object.assign({}, surahMeta, {
+    introduction:    dbSurah.introduction_en || '',
+    introduction_bn: dbSurah.introduction_bn || '',
+    sections,
+  });
+
+  surahCache[num] = full;
+  return full;
+}
+
+
+const isMobile = () => window.innerWidth <= 768;
+
+function showMobileList() {
+  document.getElementById('mobileListScreen').style.display = 'flex';
+  document.getElementById('mobileReader').classList.remove('visible');
+  closeSidebar();
+  renderMobileList();
+  window.scrollTo(0, 0);
+}
+
+function showMobileReader() {
+  document.getElementById('mobileListScreen').style.display = 'none';
+  document.getElementById('mobileReader').classList.add('visible');
+  const btn = document.getElementById('sidebarToggleBtn');
+  if (btn) btn.classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+
+function renderMobileList() {
+  const list = document.getElementById('mobileSurahList');
+  if (!list) return;
+  list.innerHTML = SURAHS.map(s => {
+    const done = isComplete(s.number);
+    return `
+    <button class="mobile-surah-item" onclick="loadSurah(${s.number})">
+      <span style="font-size:0.7rem;color:var(--text-muted);min-width:22px;">${s.number}</span>
+      <span style="flex:1;">
+        <span style="display:block;font-size:0.875rem;font-weight:500;color:var(--text-primary);">${s.name}</span>
+        <span style="font-size:0.7rem;color:var(--text-muted);">${num(s.verses)} ${t('verses')} · ${langPrefs.lang === 'bn' ? (s.type === 'Madani' ? 'মাদানী' : 'মক্কী') : s.type}</span>
+      </span>
+      <span style="font-size:1rem;color:var(--text-muted);margin-right:4px;">${s.arabic}</span>
+      <span style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;${done?'background:var(--teal);':''}">
+        ${done?`<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>`:''}
+      </span>
+    </button>`;
+  }).join('');
+}
+
+let currentSurah = SURAHS[0];
+let completedSurahs = new Set(JSON.parse(localStorage.getItem('fahm_completed') || '[]'));
+
+function saveCompleted() {
+  localStorage.setItem('fahm_completed', JSON.stringify([...completedSurahs]));
+}
+
+function isComplete(num) {
+  return completedSurahs.has(num);
+}
+
+function toBengaliNumerals(str) {
+  const map = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
+  return String(str).replace(/[0-9]/g, d => map[d]);
+}
+
+function num(n) {
+  return langPrefs.lang === 'bn' ? toBengaliNumerals(n) : String(n);
+}
+
+function verseRange(range) {
+  return langPrefs.lang === 'bn' ? toBengaliNumerals(range) : range;
+}
+
+function verseKey(key) {
+  return langPrefs.lang === 'bn' ? toBengaliNumerals(key) : key;
+}
+
+function getRevelationPeriodLabel(surahNum, type) {
+  const isBn = langPrefs.lang === 'bn';
+  if (type === 'Madani') return isBn ? 'মাদানী' : 'Madani';
+  return isBn ? 'মক্কী' : 'Makki';
+}
+
+// Authoritative verse counts per surah from Quran Foundation API chapters.json
+// These must match the CDN audio numbering exactly
+const VERSE_COUNTS_BY_SURAH = {};
+
+// We'll populate this from the chapters.json fetch, or fall back to hardcoded
+// Hardcoded from Quran Foundation API (total = 6236)
+const VERSE_COUNTS_ARR = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6];
+
+// Build cumulative offsets: offset[n] = absolute number of verse 1 of surah n+1
+const SURAH_OFFSETS = [];
+let _running = 0;
+for (let i = 0; i < VERSE_COUNTS_ARR.length; i++) {
+  SURAH_OFFSETS.push(_running);
+  _running += VERSE_COUNTS_ARR[i];
+}
+// Total so far covers surahs 1-114 (partial if array is short)
+
+function getAbsoluteVerseNum(surahNum, verseNum) {
+  if (surahNum < 1 || surahNum > SURAH_OFFSETS.length) return null;
+  return SURAH_OFFSETS[surahNum - 1] + verseNum;
+}
+
+function getVerseAudioUrl(surahNum, verseNum) {
+  const s = String(surahNum).padStart(3, '0');
+  const v = String(verseNum).padStart(3, '0');
+  return `https://verses.quran.foundation/Shatri/mp3/${s}${v}.mp3`;
+}
+
+// Chapter-level audio fetched live from the QF Content API.
+// Falls back to per-verse CDN URLs if the fetch fails.
+let currentChapterAudioUrl   = null;
+let currentChapterAudioSurah = null;
+
+async function fetchChapterAudio(surahNum) {
+  currentChapterAudioUrl   = null;
+  currentChapterAudioSurah = null;
+  try {
+    const r = await fetch(`https://api.quran.com/api/v4/chapter_recitations/6/${surahNum}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    const url = data?.audio_file?.audio_url;
+    if (!url) throw new Error('No audio_url in response');
+    currentChapterAudioUrl   = url;
+    currentChapterAudioSurah = surahNum;
+    console.log('[audio] QF chapter audio ready for surah %d → %s', surahNum, url);
+  } catch (e) {
+    console.warn('[audio] QF chapter audio fetch failed, per-verse fallback active:', e.message);
+  }
+}
+
+function fmtTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+// Active playback state
+let audioQueue = [];       // [{surahNum, verseNum, verseKey}, ...]
+let audioQueueIndex = 0;
+let activeAudio = null;
+let activeAudioSectionId = null;
+let isAudioPaused = false;
+
+function clearVerseHighlights() {
+  document.querySelectorAll('.verse-row.playing').forEach(el => el.classList.remove('playing'));
+}
+
+function highlightVerse(verseKey) {
+  clearVerseHighlights();
+  const safeKey = verseKey.replace(':', '-');
+  let targetRow = null;
+  document.querySelectorAll('.verse-row').forEach(row => {
+    if (row.dataset.verseKey === safeKey) {
+      row.classList.add('playing');
+      targetRow = row;
+    }
+  });
+
+  if (targetRow) {
+    const rect = targetRow.getBoundingClientRect();
+    const viewportH = window.innerHeight;
+    // Target position: 33% from top of viewport
+    const targetTop = viewportH * 0.33;
+    const scrollDelta = rect.top - targetTop;
+    window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
+  }
+}
+
+function updateSectionProgress(btnId, progressId, current, total) {
+  const pct = total > 0 ? (current / total) * 100 : 0;
+  const fill = document.querySelector(`#${progressId} .audio-progress-fill`);
+  if (fill) fill.style.width = pct + '%';
+  document.getElementById('miniProgressFill').style.width = pct + '%';
+}
+
+// Single reusable audio element — mobile browsers allow src changes
+// within the same playback chain without requiring a new user gesture
+const sharedAudio = new Audio();
+sharedAudio.preload = 'auto';
+
+function playQueue(btnId, progressId, sectionTitle) {
+  if (audioQueueIndex >= audioQueue.length) {
+    clearVerseHighlights();
+    const btn = document.getElementById(btnId);
+    if (btn) { btn.classList.remove('playing'); btn.innerHTML = playIcon(); }
+    const wrap = document.getElementById(progressId);
+    if (wrap) { wrap.classList.remove('visible'); wrap.querySelector('.audio-progress-fill').style.width = '0%'; }
+    document.getElementById('miniPlayer').classList.remove('visible');
+    document.body.classList.remove('player-active');
+    activeAudio = null;
+    activeAudioSectionId = null;
+    isAudioPaused = false;
+    return;
+  }
+
+  const { surahNum, verseNum, verseKey } = audioQueue[audioQueueIndex];
+  highlightVerse(verseKey);
+  updateSectionProgress(btnId, progressId, audioQueueIndex, audioQueue.length);
+  updateMiniPlayer(true, sectionTitle, audioQueueIndex + 1, audioQueue.length);
+
+  sharedAudio.onended = null;
+  sharedAudio.onerror = null;
+  sharedAudio.src = getVerseAudioUrl(surahNum, verseNum);
+  activeAudio = sharedAudio;
+
+  sharedAudio.onended = () => {
+    audioQueueIndex++;
+    playQueue(btnId, progressId, sectionTitle);
+  };
+
+  sharedAudio.onerror = () => {
+    audioQueueIndex++;
+    playQueue(btnId, progressId, sectionTitle);
+  };
+
+  sharedAudio.play().catch(() => {
+    audioQueueIndex++;
+    playQueue(btnId, progressId, sectionTitle);
+  });
+}
+
+function renderSidebar() {
+  const list = document.getElementById('surahList');
+  list.innerHTML = SURAHS.map(s => {
+    const done = isComplete(s.number);
+    return `
+    <button class="surah-item ${s.number === currentSurah.number ? 'active' : ''}" onclick="closeSidebar(); loadSurah(${s.number})">
+      <span class="surah-num">${s.number}</span>
+      <span class="surah-info">
+        <span class="surah-name">${s.name}</span>
+        <span class="surah-meta">${num(s.verses)} · ${langPrefs.lang === 'bn' ? (s.type === 'Madani' ? 'মাদানী' : 'মক্কী') : s.type}</span>
+      </span>
+      <span class="surah-progress ${done ? 'complete' : ''}" id="progress-${s.number}">
+        ${done ? `<svg class="check-icon" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>` : ''}
+      </span>
+    </button>`}).join('');
+}
+
+let surahEntryTime = Date.now();
+
+async function loadSurah(num) {
+  // Track time spent on previous surah before switching
+  const timeSpent = Math.round((Date.now() - surahEntryTime) / 1000);
+  if (timeSpent > 3) {
+    gtag('event', 'time_on_surah', {
+      surah_number: currentSurah.number,
+      surah_name: currentSurah.name,
+      seconds: timeSpent
+    });
+  }
+  surahEntryTime = Date.now();
+
+  stopAudio();
+
+  // Set lightweight metadata immediately so sidebar highlights correctly
+  currentSurah = SURAHS.find(s => s.number === num) || currentSurah;
+  renderSidebar();
+
+  // Show loading state in reader
+  const content = document.getElementById('readerContent');
+  if (content) content.innerHTML = `
+    <div style="padding: 3rem 0; display:flex; flex-direction:column; gap: 1.5rem;">
+      <div style="height: 20px; background: var(--cream-dark); border-radius: 4px; width: 40%; margin: 0 auto; animation: shimmer 1.2s infinite;"></div>
+      <div style="height: 60px; background: var(--cream-dark); border-radius: 4px; width: 60%; margin: 0 auto; animation: shimmer 1.2s infinite 0.1s;"></div>
+      <div style="height: 16px; background: var(--cream-dark); border-radius: 4px; width: 30%; margin: 0 auto; animation: shimmer 1.2s infinite 0.2s;"></div>
+      <div style="height: 80px; background: var(--cream-dark); border-radius: 4px; margin-top: 1rem; animation: shimmer 1.2s infinite 0.3s;"></div>
+      <div style="height: 16px; background: var(--cream-dark); border-radius: 4px; animation: shimmer 1.2s infinite 0.4s;"></div>
+      <div style="height: 16px; background: var(--cream-dark); border-radius: 4px; width: 85%; animation: shimmer 1.2s infinite 0.5s;"></div>
+      <div style="height: 16px; background: var(--cream-dark); border-radius: 4px; width: 90%; animation: shimmer 1.2s infinite 0.6s;"></div>
+    </div>`;
+
+  if (isMobile()) showMobileReader();
+
+  try {
+    currentSurah = await fetchSurahFromDB(num);
+  } catch(e) {
+    console.error('Failed to load surah:', e);
+    if (content) content.innerHTML = `
+      <div style="text-align:center; padding: 4rem 2rem; color: var(--text-muted);">
+        <div style="font-size:0.875rem;">Failed to load surah. Please check your connection and try again.</div>
+      </div>`;
+    return;
+  }
+
+  renderSidebar();
+  renderReader();
+  applyDisplaySettings();
+  syncSidebarBtn();
+  window.scrollTo(0, 0);
+  if (!isMobile()) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+  gtag('event', 'surah_open', {
+    surah_number: currentSurah.number,
+    surah_name: currentSurah.name
+  });
+
+  fetchChapterAudio(currentSurah.number);   // fire-and-forget — visible in network tab
+  startActivityDayTimer(currentSurah.number);
+}
+
+function stopAudio() {
+  sharedAudio.onended     = null;
+  sharedAudio.onerror     = null;
+  sharedAudio.ontimeupdate = null;
+  sharedAudio.pause();
+  sharedAudio.src = '';
+  activeAudio = null;
+  clearVerseHighlights();
+  audioQueue = [];
+  audioQueueIndex = 0;
+  activeAudioSectionId = null;
+  isAudioPaused = false;
+  document.getElementById('miniPlayer').classList.remove('visible');
+  document.querySelectorAll('.audio-btn').forEach(b => { b.classList.remove('playing'); b.innerHTML = playIcon(); });
+  document.querySelectorAll('.audio-progress-wrap').forEach(w => { w.classList.remove('visible'); });
+}
+
+function toggleAudio(surahNum, sectionNum, sectionTitle, btnId, progressId, verseKeys) {
+  const sectionId = `${surahNum}-${sectionNum}`;
+  const btn = document.getElementById(btnId);
+  const progressWrap = document.getElementById(progressId);
+
+  // ── QF chapter audio (single file, fetched live from api.quran.com) ────────
+  if (currentChapterAudioUrl && currentChapterAudioSurah === surahNum) {
+    if (activeAudio && activeAudioSectionId) {
+      // Audio already loaded — toggle play/pause from whichever button was pressed.
+      if (activeAudio.paused) {
+        activeAudio.play().catch(() => {});
+        isAudioPaused = false;
+        btn.classList.add('playing');
+        btn.innerHTML = pauseIcon();
+        // Move "active" marker to this button if the user clicked a different section.
+        if (activeAudioSectionId !== sectionId) {
+          const [ps, pn] = activeAudioSectionId.split('-');
+          const prevBtn = document.getElementById(`audio-btn-${ps}-${pn}`);
+          if (prevBtn) { prevBtn.classList.remove('playing'); prevBtn.innerHTML = playIcon(); }
+          activeAudioSectionId = sectionId;
+        }
+        updateMiniPlayer(true, `${currentSurah.name} · Abu Bakr al-Shatri`, null, null);
+      } else {
+        activeAudio.pause();
+        isAudioPaused = true;
+        btn.classList.remove('playing');
+        btn.innerHTML = playIcon();
+        updateMiniPlayer(false, `${currentSurah.name} · Abu Bakr al-Shatri`, null, null);
+      }
+      return;
+    }
+
+    // First play — load and start chapter audio.
+    stopAudio();
+    activeAudioSectionId = sectionId;
+    btn.classList.add('playing');
+    btn.innerHTML = pauseIcon();
+    progressWrap && progressWrap.classList.add('visible');
+
+    sharedAudio.src = currentChapterAudioUrl;
+    activeAudio = sharedAudio;
+
+    sharedAudio.ontimeupdate = () => {
+      if (!sharedAudio.duration) return;
+      const pct = (sharedAudio.currentTime / sharedAudio.duration) * 100;
+      const fill = document.querySelector(`#${progressId} .audio-progress-fill`);
+      if (fill) fill.style.width = pct + '%';
+      document.getElementById('miniProgressFill').style.width = pct + '%';
+      const sub = document.getElementById('miniSub');
+      if (sub) sub.textContent =
+        `${fmtTime(sharedAudio.currentTime)} / ${fmtTime(sharedAudio.duration)} · Abu Bakr al-Shatri`;
+    };
+
+    sharedAudio.onended = () => {
+      clearVerseHighlights();
+      document.querySelectorAll('.audio-btn.playing').forEach(b => {
+        b.classList.remove('playing'); b.innerHTML = playIcon();
+      });
+      document.querySelectorAll('.audio-progress-wrap.visible').forEach(w => {
+        w.classList.remove('visible');
+        const fill = w.querySelector('.audio-progress-fill');
+        if (fill) fill.style.width = '0%';
+      });
+      document.getElementById('miniPlayer').classList.remove('visible');
+      document.body.classList.remove('player-active');
+      activeAudio = null; activeAudioSectionId = null; isAudioPaused = false;
+    };
+
+    sharedAudio.onerror = () => {
+      console.warn('[audio] Chapter audio error, falling back to per-verse');
+      currentChapterAudioUrl = null;
+      stopAudio();
+      toggleAudio(surahNum, sectionNum, sectionTitle, btnId, progressId, verseKeys);
+    };
+
+    updateMiniPlayer(true, `${currentSurah.name} · Abu Bakr al-Shatri`, null, null);
+    sharedAudio.play().catch(e => console.warn('[audio] chapter play() rejected:', e.message));
+    console.log('[audio] playing QF chapter audio, surah=%d url=%s', surahNum, currentChapterAudioUrl);
+    gtag('event', 'audio_play', {
+      surah_number: surahNum, surah_name: currentSurah.name,
+      section_title: sectionTitle, audio_source: 'qf_chapter_api'
+    });
+    return;
+  }
+
+  // ── Per-verse fallback (CDN) ──────────────────────────────────────────────
+  const isSameSection = activeAudioSectionId === sectionId;
+  if (isSameSection && activeAudio) {
+    if (activeAudio.paused) {
+      activeAudio.play();
+      isAudioPaused = false;
+      btn.classList.add('playing');
+      btn.innerHTML = pauseIcon();
+      updateMiniPlayer(true, sectionTitle, audioQueueIndex + 1, audioQueue.length);
+    } else {
+      activeAudio.pause();
+      isAudioPaused = true;
+      btn.classList.remove('playing');
+      btn.innerHTML = playIcon();
+      updateMiniPlayer(false, sectionTitle, audioQueueIndex + 1, audioQueue.length);
+    }
+    return;
+  }
+
+  stopAudio();
+  audioQueue = verseKeys.map(vk => {
+    const [s, v] = vk.split(':');
+    return { surahNum: parseInt(s), verseNum: parseInt(v), verseKey: vk };
+  });
+  audioQueueIndex = 0;
+  activeAudioSectionId = sectionId;
+  btn.classList.add('playing');
+  btn.innerHTML = pauseIcon();
+  progressWrap && progressWrap.classList.add('visible');
+
+  gtag('event', 'audio_play', {
+    surah_number: surahNum, surah_name: currentSurah.name,
+    section_title: sectionTitle, audio_source: 'per_verse_cdn'
+  });
+  playQueue(btnId, progressId, sectionTitle);
+}
+
+function toggleMiniPlay() {
+  if (!activeAudio || !activeAudioSectionId) return;
+  // Find the active section's btn and progressId
+  const [surahNum, sectionNum] = activeAudioSectionId.split('-');
+  const btnId = `audio-btn-${surahNum}-${sectionNum}`;
+  const progressId = `audio-prog-${surahNum}-${sectionNum}`;
+  const sectionTitle = document.getElementById('miniTitle').textContent;
+
+  if (activeAudio.paused) {
+    activeAudio.play();
+    isAudioPaused = false;
+    document.getElementById(btnId) && (document.getElementById(btnId).innerHTML = pauseIcon());
+    document.getElementById(btnId) && document.getElementById(btnId).classList.add('playing');
+    document.getElementById('miniPlayIcon').outerHTML = `<svg id="miniPlayIcon" width="16" height="16" viewBox="0 0 16 16" fill="white"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>`;
+  } else {
+    activeAudio.pause();
+    isAudioPaused = true;
+    document.getElementById(btnId) && (document.getElementById(btnId).innerHTML = playIcon());
+    document.getElementById(btnId) && document.getElementById(btnId).classList.remove('playing');
+    document.getElementById('miniPlayIcon').outerHTML = `<svg id="miniPlayIcon" width="16" height="16" viewBox="0 0 16 16" fill="white"><polygon points="4,2 14,8 4,14"/></svg>`;
+  }
+}
+
+function updateMiniPlayer(playing, title, current, total) {
+  document.getElementById('miniTitle').textContent = title;
+  const sub = document.getElementById('miniSub');
+  if (sub && current && total) sub.textContent = `Verse ${current} of ${total} · Abu Bakr al-Shatri`;
+  document.getElementById('miniPlayer').classList.add('visible');
+  document.body.classList.add('player-active');
+  const iconEl = document.getElementById('miniPlayIcon');
+  if (iconEl) iconEl.outerHTML = playing
+    ? `<svg id="miniPlayIcon" width="16" height="16" viewBox="0 0 16 16" fill="white"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>`
+    : `<svg id="miniPlayIcon" width="16" height="16" viewBox="0 0 16 16" fill="white"><polygon points="4,2 14,8 4,14"/></svg>`;
+}
+
+function playIcon() {
+  return `<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><polygon points="3,1 13,7 3,13"/></svg>`;
+}
+
+function pauseIcon() {
+  return `<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="1" width="4" height="12" rx="1"/><rect x="8" y="1" width="4" height="12" rx="1"/></svg>`;
+}
+
+
+function markComplete(num) {
+  completedSurahs.add(num);
+  saveCompleted();
+  const surah = SURAHS.find(s => s.number === num);
+  gtag('event', 'surah_complete', {
+    surah_number: num,
+    surah_name: surah ? surah.name : ''
+  });
+
+  // Sync to DB if signed in, otherwise prompt sign-in
+  if (currentUser) {
+    syncProgressToDB(num);
+  } else if (!sessionStorage.getItem('fahm_engage_dismissed')) {
+    setTimeout(() => showAuthModal('prompt'), 800);
+  }
+
+  const btn = document.getElementById('markCompleteBtn');
+  if (btn) {
+    btn.classList.add('done');
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="2.5"><polyline points="2,8 6,12 14,4"/></svg> Completed`;
+  }
+
+  const msg = document.getElementById('completionMsg');
+  if (msg) msg.classList.add('visible');
+
+  const nextBtn = document.getElementById('nextSurahBtn');
+  if (nextBtn) nextBtn.classList.add('visible');
+
+  const progressCircle = document.getElementById('progress-' + num);
+  if (progressCircle) {
+    progressCircle.classList.add('complete');
+    progressCircle.innerHTML = `<svg class="check-icon" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>`;
+  }
+}
+
+function nextSurah() {
+  const idx = SURAHS.findIndex(s => s.number === currentSurah.number);
+  if (idx < SURAHS.length - 1) loadSurah(SURAHS[idx + 1].number);
+}
+
+// ── LANGUAGE & DISPLAY SETTINGS ──
+const LANG_DEFS = {
+  en: {
+    label: 'English',
+    flag: 'EN',
+    verse_toggles: [
+      { key: 'translit', label: 'Transliteration',        sub: null,                  locked: false, default: false },
+      { key: 'abdel',    label: 'English translation',     sub: 'Abdel Haleem',         locked: false, default: true  },
+      { key: 'sahih',    label: 'English translation',     sub: 'Sahih International',  locked: false, default: false },
+    ]
+  },
+  bn: {
+    label: 'বাংলা',
+    flag: 'BN',
+    verse_toggles: [
+      { key: 'translit', label: 'Transliteration',        sub: null,                  locked: false, default: false },
+      { key: 'bn_taisirul', label: 'বাংলা অনুবাদ',        sub: 'তাইসিরুল কুরআন',      locked: false, default: true  },
+      { key: 'bn_rawai',    label: 'বাংলা অনুবাদ',        sub: 'রাওয়াই আল-বায়ান',     locked: false, default: false },
+    ]
+  }
+};
+
+function loadLangPrefs() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('fahm_lang_prefs') || '{}');
+    const prefs = { lang: 'en', toggles: {} };
+    prefs.lang = saved.lang || 'en';
+    // Build toggle state from saved or defaults
+    for (const [lang, def] of Object.entries(LANG_DEFS)) {
+      prefs.toggles[lang] = {};
+      for (const t of def.verse_toggles) {
+        prefs.toggles[lang][t.key] = saved.toggles?.[lang]?.[t.key] ?? t.default;
+      }
+    }
+    return prefs;
+  } catch(e) {
+    return buildDefaultPrefs();
+  }
+}
+
+function buildDefaultPrefs() {
+  const prefs = { lang: 'en', toggles: {} };
+  for (const [lang, def] of Object.entries(LANG_DEFS)) {
+    prefs.toggles[lang] = {};
+    for (const t of def.verse_toggles) {
+      prefs.toggles[lang][t.key] = t.default;
+    }
+  }
+  return prefs;
+}
+
+function saveLangPrefs() {
+  localStorage.setItem('fahm_lang_prefs', JSON.stringify(langPrefs));
+}
+
+let langPrefs = loadLangPrefs();
+
+function currentLang() { return LANG_DEFS[langPrefs.lang]; }
+function currentToggles() { return langPrefs.toggles[langPrefs.lang]; }
+
+function settingsPanelHTML() {
+  const lang = langPrefs.lang;
+  const toggles = currentToggles();
+  const langDef = currentLang();
+
+  // Language selector row
+  const langRows = Object.entries(LANG_DEFS).map(([code, def]) => {
+    const isActive = code === lang;
+    return `<button class="lang-option ${isActive ? 'active' : ''}" onclick="switchLang('${code}')">
+      <span class="lang-label">${def.label}</span>
+      ${isActive ? `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,6 5,9 10,3"/></svg>` : ''}
+    </button>`;
+  }).join('');
+
+  // Arabic row (always locked on)
+  const arabicRow = `
+    <div class="settings-row">
+      <div class="settings-row-info"><div class="settings-row-name">Arabic text</div></div>
+      <div class="toggle-switch on locked"><div class="toggle-thumb"></div></div>
+    </div>`;
+
+  // Verse toggle rows for current language
+  const toggleRows = langDef.verse_toggles.map(t => {
+    const isOn = toggles[t.key] ?? t.default;
+    const isDisabled = t.disabled || false;
+    const lockedClass = isDisabled ? ' locked' : '';
+    const clickAttr = isDisabled ? '' : `onclick="toggleVerseLayer('${t.key}')"`;
+    return `
+    <div class="settings-row">
+      <div class="settings-row-info">
+        <div class="settings-row-name">${t.label}${isDisabled ? ' <span style="font-size:0.65rem;color:var(--text-muted);">soon</span>' : ''}</div>
+        ${t.sub ? `<div class="settings-row-sub">${t.sub}</div>` : ''}
+      </div>
+      <div class="toggle-switch ${isOn ? 'on' : 'off'}${lockedClass}" ${clickAttr}>
+        <div class="toggle-thumb"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="settings-label">Language</div>
+    <div class="lang-selector">${langRows}</div>
+    <div class="settings-divider"></div>
+    <div class="settings-label">Verse display</div>
+    ${arabicRow}
+    ${toggleRows}`;
+}
+
+function renderSettingsRows() {
+  const html = settingsPanelHTML();
+  const dropdown = document.getElementById('settingsDropdown');
+  const sheet = document.getElementById('settingsSheetRows');
+  if (dropdown) dropdown.innerHTML = html;
+  if (sheet) sheet.innerHTML = html;
+}
+
+function switchLang(code) {
+  langPrefs.lang = code;
+  saveLangPrefs();
+  updateGlobeLabel();
+  updateStaticLabels();
+  renderSettingsRows();
+  renderSidebar();
+  renderMobileList();
+  renderReader();
+  applyDisplaySettings();
+  syncSidebarBtn();
+}
+
+function updateStaticLabels() {
+  const el = (id) => document.getElementById(id);
+  if (el('sidebarLabel'))    el('sidebarLabel').textContent    = t('juzAmma');
+  if (el('mobileListLabel')) el('mobileListLabel').textContent = t('juzAmma');
+}
+
+function toggleVerseLayer(key) {
+  langPrefs.toggles[langPrefs.lang][key] = !langPrefs.toggles[langPrefs.lang][key];
+  saveLangPrefs();
+  renderSettingsRows();
+  applyDisplaySettings();
+}
+
+function applyDisplaySettings() {
+  const toggles = currentToggles();
+  const isBn = langPrefs.lang === 'bn';
+
+  document.querySelectorAll('.verse-translit').forEach(el => {
+    el.style.display = toggles.translit ? 'block' : 'none';
+  });
+  document.querySelectorAll('.verse-translation').forEach(el => {
+    el.style.display = (!isBn && toggles.abdel) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.verse-secondary').forEach(el => {
+    el.style.display = (!isBn && toggles.sahih) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.verse-bn-primary').forEach(el => {
+    el.style.display = (isBn && toggles.bn_taisirul) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.verse-bn-secondary').forEach(el => {
+    el.style.display = (isBn && toggles.bn_rawai) ? 'block' : 'none';
+  });
+}
+
+function toggleSettingsPanel() {
+  const mobile = window.innerWidth <= 768;
+  // Dismiss tooltip
+  const tooltip = document.getElementById('langTooltip');
+  if (tooltip) { tooltip.classList.remove('visible'); localStorage.setItem('fahm_lang_tooltip_seen', '1'); }
+  if (mobile) {
+    renderSettingsRows();
+    document.getElementById('settingsSheetOverlay').classList.toggle('open');
+  } else {
+    renderSettingsRows();
+    const dropdown = document.getElementById('settingsDropdown');
+    const btn = document.getElementById('globeBtn');
+    const isOpen = dropdown.classList.toggle('open');
+    btn.classList.toggle('active', isOpen);
+  }
+}
+
+function updateGlobeLabel() {
+  const el = document.getElementById('globeLangLabel');
+  if (el) el.textContent = LANG_DEFS[langPrefs.lang].flag;
+}
+
+function showLangTooltipIfFirstVisit() {
+  if (localStorage.getItem('fahm_lang_tooltip_seen')) return;
+  const tooltip = document.getElementById('langTooltip');
+  if (!tooltip) return;
+  tooltip.classList.add('visible');
+  setTimeout(() => {
+    tooltip.classList.remove('visible');
+    localStorage.setItem('fahm_lang_tooltip_seen', '1');
+  }, 4000);
+}
+
+function closeSettingsPanel() {
+  document.getElementById('settingsSheetOverlay').classList.remove('open');
+  const dropdown = document.getElementById('settingsDropdown');
+  if (dropdown) dropdown.classList.remove('open');
+  const btn = document.getElementById('globeBtn');
+  if (btn) btn.classList.remove('active');
+}
+
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.display-settings-wrap');
+  if (wrap && !wrap.contains(e.target)) closeSettingsPanel();
+});
+
+const UI = {
+  en: {
+    tagline:        'Understand the message',
+    juzAmma:        'The Quran · 114 Surahs',
+    juzAmmaShort:   'The Quran',
+    verses:         'verses',
+    versesLabel:    'Verses',
+    sections:       'Sections',
+    comingSoon:     'Coming soon',
+    markComplete:   'Mark as complete',
+    completed:      'Completed',
+    allSurahs:      'All surahs',
+    bismillah:      'In the name of God, the Lord of Mercy, the Giver of Mercy',
+    youCompleted:   (name) => `You've completed ${name}. May it bring you understanding.`,
+    continueNext:   'Continue to next surah →',
+  },
+  bn: {
+    tagline:        'বার্তাটি বুঝুন',
+    juzAmma:        'কুরআন · ১১৪টি সুরা',
+    juzAmmaShort:   'কুরআন',
+    verses:         'আয়াত',
+    versesLabel:    'আয়াত',
+    sections:       'অংশ',
+    comingSoon:     'শীঘ্রই আসছে',
+    markComplete:   'সম্পন্ন হিসেবে চিহ্নিত করুন',
+    completed:      'সম্পন্ন',
+    allSurahs:      'সব সুরা',
+    bismillah:      'পরম করুণাময় ও অসীম দয়ালু আল্লাহর নামে',
+    youCompleted:   (name) => `আপনি ${name} সম্পন্ন করেছেন। এটি আপনার উপলব্ধি বাড়াক।`,
+    continueNext:   'পরবর্তী সুরায় যান →',
+  }
+};
+
+function t(key, ...args) {
+  const lang = langPrefs.lang || 'en';
+  const val = UI[lang]?.[key] ?? UI.en[key];
+  return typeof val === 'function' ? val(...args) : val;
+}
+
+// ── AUTH ────────────────────────────────────────────────────
+let currentUser = null;
+let engagePromptShown = sessionStorage.getItem('fahm_engage_shown') === '1';
+
+function getSectionsViewed() {
+  return parseInt(sessionStorage.getItem('fahm_sections_viewed') || '0');
+}
+
+// Initialise Supabase auth using the REST API + GoTrue
+const GOTRUE_URL = `${SUPABASE_URL}/auth/v1`;
+
+async function getSession() {
+  const stored = localStorage.getItem('fahm_session');
+  if (!stored) return null;
+  try {
+    const session = JSON.parse(stored);
+    // Check expiry
+    if (session.expires_at && Date.now() / 1000 > session.expires_at - 60) {
+      // Refresh token
+      const r = await fetch(`${GOTRUE_URL}/token?grant_type=refresh_token`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: session.refresh_token })
+      });
+      if (!r.ok) { localStorage.removeItem('fahm_session'); return null; }
+      const data = await r.json();
+      localStorage.setItem('fahm_session', JSON.stringify(data));
+      return data;
+    }
+    return session;
+  } catch(e) { return null; }
+}
+
+async function signInWithGoogle() {
+  const redirectTo = encodeURIComponent(window.location.origin + window.location.pathname);
+  const url = `${GOTRUE_URL}/authorize?provider=google&redirect_to=${redirectTo}`;
+  window.location.href = url;
+}
+
+// ── QF (Quran.com) OAuth ───────────────────────────────────
+function signInWithQF() {
+  window.location.href = '/api/qf-auth?action=start';
+}
+
+function base64urlToString(b64u) {
+  const pad = '='.repeat((4 - (b64u.length % 4)) % 4);
+  const b64 = (b64u + pad).replace(/-/g, '+').replace(/_/g, '/');
+  try { return decodeURIComponent(escape(atob(b64))); } catch { return atob(b64); }
+}
+
+async function getQFSession() {
+  const stored = localStorage.getItem('fahm_qf_session');
+  if (!stored) return null;
+  try {
+    const session = JSON.parse(stored);
+    if (session.expires_at && Date.now() / 1000 > session.expires_at - 60) {
+      if (!session.refresh_token) { localStorage.removeItem('fahm_qf_session'); return null; }
+      const r = await fetch('/api/qf-auth?action=refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: session.refresh_token })
+      });
+      if (!r.ok) { localStorage.removeItem('fahm_qf_session'); return null; }
+      const t = await r.json();
+      session.access_token  = t.access_token  || session.access_token;
+      session.refresh_token = t.refresh_token || session.refresh_token;
+      session.expires_at    = Math.floor(Date.now() / 1000) + (t.expires_in || 3600);
+      localStorage.setItem('fahm_qf_session', JSON.stringify(session));
+    }
+    return session;
+  } catch { return null; }
+}
+
+function normalizeQFUser(rawUser, fallbackSub) {
+  const u = rawUser || {};
+  const fullName = u.name || [u.given_name, u.family_name].filter(Boolean).join(' ').trim() || u.preferred_username || u.email || 'QF User';
+  return {
+    id: u.sub || fallbackSub || '',
+    email: u.email || '',
+    user_metadata: { full_name: fullName, avatar_url: u.picture || '' },
+    _provider: 'qf'
+  };
+}
+
+function isQFGenericUser(user) {
+  if (!user || user._provider !== 'qf') return false;
+  const name = (user.user_metadata?.full_name || '').trim();
+  return !name || name === 'QF User';
+}
+
+// Crescent SVG used in place of initials for QF users without a real display name.
+// size targets the interior of the avatar circle (nav=11, modal=22).
+function qfCrescentSVG(size, color) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="${color}" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 0 1 5.5 2.5a.5.5 0 0 0-.6-.6A6 6 0 1 0 13.7 8.6a.5.5 0 0 0-.6-.6z"/></svg>`;
+}
+
+async function signOut() {
+  if (currentUser?._provider !== 'qf') {
+    const session = await getSession();
+    if (session) {
+      await fetch(`${GOTRUE_URL}/logout`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+    }
+  }
+  localStorage.removeItem('fahm_session');
+  localStorage.removeItem('fahm_qf_session');
+  currentUser = null;
+  _sectionDwellSent.clear();
+  if (_sectionDwellObserver) { _sectionDwellObserver.disconnect(); _sectionDwellObserver = null; }
+  updateAuthUI();
+  closeAuthModal();
+}
+
+async function handleAuthCallback() {
+  // Parse hash params from OAuth redirect
+  const hash = window.location.hash;
+  if (!hash || hash.length < 2) return;
+  const params = new URLSearchParams(hash.replace('#', ''));
+
+  // ── QF callback ─────────────────────────────────────────
+  if (params.get('qf_access_token') || params.get('qf_error')) {
+    if (params.get('qf_error')) {
+      console.warn('QF sign-in error:', params.get('qf_error'));
+      history.replaceState(null, '', window.location.pathname);
+      return;
+    }
+    let rawUser = null;
+    const uEnc = params.get('qf_user');
+    if (uEnc) {
+      try { rawUser = JSON.parse(base64urlToString(uEnc)); } catch {}
+    }
+    // Decode the JWT sub from the access token as a guaranteed fallback for user id.
+    // normalizeQFUser uses sub||fallbackSub, so this covers the case where userinfo
+    // was empty or unavailable during the OAuth callback.
+    let jwtSub = '';
+    try {
+      const parts = (params.get('qf_access_token') || '').split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        jwtSub = payload.sub || '';
+      }
+    } catch (e) { console.warn('[auth] JWT sub decode failed:', e.message); }
+    console.log('[auth] QF callback rawUser.sub=%s jwtSub=%s', rawUser?.sub, jwtSub);
+    const user = normalizeQFUser(rawUser, jwtSub);
+    const session = {
+      access_token:  params.get('qf_access_token'),
+      refresh_token: params.get('qf_refresh_token') || '',
+      expires_at:    Math.floor(Date.now() / 1000) + parseInt(params.get('qf_expires_in') || '3600'),
+      id_token:      params.get('qf_id_token') || '',
+      user
+    };
+    localStorage.setItem('fahm_qf_session', JSON.stringify(session));
+    currentUser = user;
+    history.replaceState(null, '', window.location.pathname);
+    updateAuthUI();
+    return;
+  }
+
+  // ── Supabase (Google) callback ─────────────────────────
+  if (!hash.includes('access_token')) return;
+  const session = {
+    access_token:  params.get('access_token'),
+    refresh_token: params.get('refresh_token'),
+    expires_at:    Math.floor(Date.now() / 1000) + parseInt(params.get('expires_in') || '3600'),
+    user: null
+  };
+  const r = await fetch(`${GOTRUE_URL}/user`, {
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${session.access_token}` }
+  });
+  if (r.ok) {
+    session.user = await r.json();
+    localStorage.setItem('fahm_session', JSON.stringify(session));
+    currentUser = session.user;
+    history.replaceState(null, '', window.location.pathname);
+    await syncProgressFromDB();
+    updateAuthUI();
+  }
+}
+
+function updateAuthUI() {
+  const btn = document.getElementById('authNavBtn');
+  if (!btn) return;
+  if (currentUser) {
+    const name = currentUser.user_metadata?.full_name || currentUser.email || '';
+    const displayName = isQFGenericUser(currentUser) ? 'QF User' : name;
+    const inner = isQFGenericUser(currentUser)
+      ? qfCrescentSVG(11, 'white')
+      : (() => {
+          const parts = name.trim().split(' ').filter(Boolean);
+          return parts.length >= 2
+            ? parts[0][0].toUpperCase() + parts[parts.length - 1][0].toUpperCase()
+            : name.charAt(0).toUpperCase();
+        })();
+    btn.classList.add('signed-in');
+    btn.innerHTML = `<span style="width:20px;height:20px;border-radius:50%;background:var(--teal);color:white;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:600;letter-spacing:-0.5px;">${inner}</span>`;
+    btn.title = displayName;
+  } else {
+    btn.classList.remove('signed-in');
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg><span class="auth-label"> Sign in</span>`;
+  }
+}
+
+function showAuthModal(context) {
+  closeSettingsPanel();
+  dismissEngagePrompt();
+  const content = document.getElementById('authModalContent');
+  if (currentUser) {
+    const name = currentUser.user_metadata?.full_name || '';
+    const email = currentUser.email || '';
+    const displayName = isQFGenericUser(currentUser) ? 'QF User' : (name || email);
+    const avatarContent = isQFGenericUser(currentUser)
+      ? qfCrescentSVG(22, 'currentColor')
+      : (() => {
+          const parts = (name || email).trim().split(' ').filter(Boolean);
+          return parts.length >= 2
+            ? parts[0][0].toUpperCase() + parts[parts.length - 1][0].toUpperCase()
+            : (name || email).charAt(0).toUpperCase();
+        })();
+    content.innerHTML = `
+      <div class="auth-user-info">
+        <div class="auth-avatar">${avatarContent}</div>
+        <div class="auth-user-name">${displayName}</div>
+        <div class="auth-user-email">${email}</div>
+        <button class="auth-signout-btn" onclick="signOut()">Sign out</button>
+      </div>`;
+  } else {
+    const isEngagement = context === 'prompt';
+    const title    = isEngagement ? 'Save your progress' : 'Sign in to Fahm';
+    const subtitle = isEngagement
+      ? 'You\'ve been reading for a while. Sign in to save your progress across all your devices.'
+      : 'Sign in to sync your reading progress across all your devices.';
+    content.innerHTML = `
+      <p class="auth-modal-title">${title}</p>
+      <p class="auth-modal-sub">${subtitle}</p>
+      <button class="google-btn" onclick="signInWithGoogle()">
+        <svg width="16" height="16" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+        Continue with Google
+      </button>
+      <button class="qf-btn" onclick="signInWithQF()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:0.75rem;padding:0.75rem 1rem;background:var(--teal);color:white;border:1px solid var(--teal);border-radius:8px;font-size:0.875rem;font-weight:500;font-family:var(--sans);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--teal-mid)'" onmouseout="this.style.background='var(--teal)'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Continue with Quran.com
+      </button>`;
+  }
+  document.getElementById('authOverlay').classList.add('open');
+}
+
+function toggleAuthModal() {
+  const overlay = document.getElementById('authOverlay');
+  if (overlay.classList.contains('open')) {
+    closeAuthModal();
+  } else {
+    showAuthModal('nav');
+  }
+}
+
+function closeAuthModal() {
+  document.getElementById('authOverlay').classList.remove('open');
+}
+
+function dismissEngagePrompt() {
+  document.getElementById('engagePrompt').classList.remove('visible');
+  sessionStorage.setItem('fahm_engage_dismissed', '1');
+}
+
+function trackSectionView() {
+  if (currentUser) return;
+  // Don't count scrolls on the surah list — only count when inside a surah
+  if (isMobile() && document.getElementById('mobileListScreen').style.display !== 'none') return;
+  const count = getSectionsViewed() + 1;
+  sessionStorage.setItem('fahm_sections_viewed', count);
+  if (count >= 5 && !engagePromptShown
+      && !sessionStorage.getItem('fahm_engage_dismissed')) {
+    engagePromptShown = true;
+    sessionStorage.setItem('fahm_engage_shown', '1');
+    setTimeout(() => {
+      document.getElementById('engagePrompt').classList.add('visible');
+    }, 1500);
+  }
+}
+
+// ── STREAK DISPLAY ───────────────────────────────────────────
+let _lastStreakCount = 0;
+
+function updateStreakDisplay(count) {
+  _lastStreakCount = Number(count) || 0;
+  const chip = document.getElementById('streakChip');
+  if (!chip) return;
+  if (_lastStreakCount < 1) { chip.classList.remove('visible'); return; }
+  chip.classList.add('visible');
+  chip.textContent = `⭐ ${_lastStreakCount}`;
+  if (currentUser?._provider === 'qf') {
+    localStorage.setItem('fahm_qf_streak', String(_lastStreakCount));
+  }
+}
+
+// ── ACTIVITY DAY + STREAK (60-second reader presence) ────────
+// QF users: POSTs to QF Activity Days API server-side, returns streak.
+// Google users: session is recorded in Supabase; streak computed client-side.
+let _activityDayTimer          = null;
+let _activityDayFiredForSurah  = null;
+
+function startActivityDayTimer(surahNum) {
+  if (_activityDayTimer) { clearTimeout(_activityDayTimer); _activityDayTimer = null; }
+  if (!currentUser) return;
+  if (_activityDayFiredForSurah === surahNum) return;
+  const verseCount = VERSE_COUNTS_ARR[surahNum - 1] || 7;
+  _activityDayTimer = setTimeout(async () => {
+    _activityDayTimer = null;
+    _activityDayFiredForSurah = surahNum;
+    console.log('[activity] 60 s on surah %d — posting activity day', surahNum);
+    await postActivityDay(surahNum, verseCount);
+  }, 60_000);
+}
+
+async function postActivityDay(surahNum, verseCount) {
+  if (!currentUser) return;
+  const provider = currentUser._provider === 'qf' ? 'qf' : 'supabase';
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  let token;
+  if (provider === 'qf') {
+    const s = await getQFSession();
+    if (!s?.access_token) return;
+    token = s.access_token;
+  } else {
+    const s = await getSession();
+    if (!s?.access_token) return;
+    token = s.access_token;
+  }
+  try {
+    const r = await fetch('/api/track-section', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ provider, surah_number: surahNum, verse_count: verseCount,
+        activity: true, timezone })
+    });
+    if (r.ok) {
+      const data = await r.json();
+      console.log('[activity] response:', data);
+      if (data.streak != null && data.streak > 0) {
+        updateStreakDisplay(data.streak);
+      } else {
+        await fetchLocalStreak();
+      }
+    }
+  } catch (e) {
+    console.warn('[activity] postActivityDay failed:', e.message);
+  }
+}
+
+function computeConsecutiveDays(rows) {
+  const dates = [...new Set(rows.map(r => r.completed_at.slice(0, 10)))].sort().reverse();
+  let streak = 0;
+  let expected = new Date().toISOString().slice(0, 10);
+  for (const d of dates) {
+    if (d === expected) {
+      streak++;
+      const dt = new Date(d + 'T00:00:00Z');
+      dt.setUTCDate(dt.getUTCDate() - 1);
+      expected = dt.toISOString().slice(0, 10);
+    } else if (d < expected) {
+      break;
+    }
+  }
+  return streak;
+}
+
+async function fetchLocalStreak() {
+  if (!currentUser) return;
+
+  if (currentUser._provider === 'qf') {
+    const cached = parseInt(localStorage.getItem('fahm_qf_streak') || '0', 10);
+    if (cached > 0) updateStreakDisplay(cached);
+    const userId = currentUser.id;
+    console.log('[streak] QF user id (JSON):', JSON.stringify(userId));
+    console.log('[streak] QF user id length:', userId.length);
+    try {
+      const r = await fetch(
+        `${SUPABASE_URL}/rest/v1/fahm_reading_sessions?user_id=eq.${encodeURIComponent(userId)}&select=completed_at&order=completed_at.desc`,
+        { headers: SB_HEADERS }
+      );
+      if (r.ok) {
+        const rows = await r.json();
+        const streak = computeConsecutiveDays(rows);
+        console.log('[streak] QF streak from Supabase: %d days', streak);
+        if (streak > 0) updateStreakDisplay(streak);
+      }
+    } catch (e) {
+      console.warn('[streak] QF Supabase fetch failed (using cache):', e.message);
+    }
+    return;
+  }
+
+  const session = await getSession();
+  if (!session?.user) return;
+  try {
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/fahm_reading_sessions?user_id=eq.${session.user.id}&select=completed_at&order=completed_at.desc`,
+      { headers: { ...SB_HEADERS, Authorization: `Bearer ${session.access_token}` } }
+    );
+    if (!r.ok) return;
+    const rows = await r.json();
+    const streak = computeConsecutiveDays(rows);
+    console.log('[streak] Google streak computed: %d days', streak);
+    updateStreakDisplay(streak);
+  } catch (e) {
+    console.warn('[streak] fetchLocalStreak failed:', e.message);
+  }
+}
+
+const fetchGoogleStreak = fetchLocalStreak;
+
+// ── SECTION DWELL TRACKING ───────────────────────────────────
+// Fires once per section per page-load after 10s of continuous on-screen dwell (signed-in users only).
+let _sectionDwellObserver = null;
+const _sectionDwellTimers = new Map();
+const _sectionDwellSent = new Set();
+const DWELL_MS = 10000;
+
+function setupSectionDwellObserver() {
+  if (_sectionDwellObserver) { _sectionDwellObserver.disconnect(); _sectionDwellObserver = null; }
+  if (!currentUser) return;
+  if (typeof IntersectionObserver === 'undefined') return;
+
+  _sectionDwellObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      const id = entry.target.dataset.sectionId;
+      if (!id || _sectionDwellSent.has(id)) continue;
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+        if (!_sectionDwellTimers.has(id)) {
+          const handle = setTimeout(() => {
+            _sectionDwellTimers.delete(id);
+            _sectionDwellSent.add(id);
+            sendSectionComplete(id);
+          }, DWELL_MS);
+          _sectionDwellTimers.set(id, handle);
+        }
+      } else {
+        const handle = _sectionDwellTimers.get(id);
+        if (handle) { clearTimeout(handle); _sectionDwellTimers.delete(id); }
+      }
+    }
+  }, { threshold: [0, 0.5] });
+
+  document.querySelectorAll('.section-block').forEach(el => _sectionDwellObserver.observe(el));
+}
+
+async function sendSectionComplete(sectionId) {
+  if (!currentUser) return;
+  const [surahStr] = sectionId.split('-');
+  const surahNum = parseInt(surahStr, 10);
+  if (!surahNum) return;
+
+  let token, provider;
+  if (currentUser._provider === 'qf') {
+    const s = await getQFSession();
+    if (!s?.access_token) return;
+    token = s.access_token; provider = 'qf';
+  } else {
+    const s = await getSession();
+    if (!s?.access_token) return;
+    token = s.access_token; provider = 'supabase';
+  }
+
+  try {
+    await fetch('/api/track-section', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ provider, surah_number: surahNum, section_id: sectionId })
+    });
+  } catch (e) {
+    // Swallow — best-effort streak signal, no UX impact.
+  }
+}
+
+// ── PROGRESS SYNC ────────────────────────────────────────────
+async function syncProgressToDB(surahNum) {
+  if (currentUser?._provider === 'qf') return; // QF users have no Supabase auth; section completions stream via /api/track-section
+  const session = await getSession();
+  if (!session) return;
+  await fetch(`${SUPABASE_URL}/rest/v1/fahm_user_progress`, {
+    method: 'POST',
+    headers: {
+      ...SB_HEADERS,
+      'Authorization': `Bearer ${session.access_token}`,
+      'Prefer': 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify({
+      user_id: session.user.id,
+      surah_number: surahNum,
+      completed: true,
+      last_read_at: new Date().toISOString()
+    })
+  });
+}
+
+async function syncProgressFromDB() {
+  const session = await getSession();
+  if (!session) return;
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/fahm_user_progress?user_id=eq.${session.user.id}&completed=eq.true&select=surah_number`,
+    { headers: { ...SB_HEADERS, 'Authorization': `Bearer ${session.access_token}` } }
+  );
+  if (!r.ok) return;
+  const rows = await r.json();
+  rows.forEach(row => completedSurahs.add(row.surah_number));
+  saveCompleted();
+  renderSidebar();
+  renderMobileList();
+}
+
+// Init auth on page load
+(async () => {
+  await handleAuthCallback();
+  if (!currentUser) {
+    const session = await getSession();
+    if (session?.user) {
+      currentUser = session.user;
+      await syncProgressFromDB();
+    }
+  }
+  if (!currentUser) {
+    const qf = await getQFSession();
+    if (qf?.user) currentUser = qf.user;
+  }
+  updateAuthUI();
+  if (currentUser) {
+    setupSectionDwellObserver();
+    startActivityDayTimer(currentSurah?.number || 1);
+    fetchLocalStreak();
+  }
+})();
+
+// ── FEEDBACK ────────────────────────────────────────────────
+function toggleFeedback() {
+  const overlay = document.getElementById('feedbackOverlay');
+  if (overlay.classList.contains('open')) {
+    closeFeedback();
+  } else {
+    openFeedback();
+  }
+}
+
+function openFeedback() {
+  document.getElementById('feedbackOverlay').classList.add('open');
+  document.getElementById('feedbackContent').innerHTML = `
+    <p class="feedback-title">Share your feedback</p>
+    <p class="feedback-sub">Help us improve Fahm. All feedback is read personally.</p>
+    <textarea id="feedbackText" class="feedback-textarea" placeholder="What's on your mind? What could be better? What do you love?" rows="5"></textarea>
+    <div class="feedback-optional">
+      <label class="feedback-checkbox-row">
+        <input type="checkbox" id="feedbackWantReply" onchange="toggleContactFields()">
+        <span>I'd like to hear back</span>
+      </label>
+      <div id="feedbackContactFields" style="display:none; margin-top:10px; flex-direction:column; gap:8px;">
+        <input type="text" id="feedbackName" class="feedback-input" placeholder="Your name (optional)">
+        <input type="email" id="feedbackEmail" class="feedback-input" placeholder="Email address (optional)">
+      </div>
+    </div>
+    <button class="feedback-submit" onclick="submitFeedback()">Send feedback</button>`;
+  setTimeout(() => document.getElementById('feedbackText')?.focus(), 100);
+}
+
+function closeFeedback() {
+  document.getElementById('feedbackOverlay').classList.remove('open');
+}
+
+function toggleContactFields() {
+  const checked = document.getElementById('feedbackWantReply').checked;
+  const fields = document.getElementById('feedbackContactFields');
+  if (fields) fields.style.display = checked ? 'flex' : 'none';
+}
+
+async function submitFeedback() {
+  const text = document.getElementById('feedbackText')?.value?.trim();
+  if (!text) {
+    document.getElementById('feedbackText')?.focus();
+    return;
+  }
+
+  const wantReply = document.getElementById('feedbackWantReply')?.checked || false;
+  const name  = document.getElementById('feedbackName')?.value?.trim() || null;
+  const email = document.getElementById('feedbackEmail')?.value?.trim() || null;
+
+  const btn = document.querySelector('.feedback-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+  const payload = {
+    feedback_text: text,
+    want_reply:    wantReply,
+    name:          name,
+    email:         email,
+    lang:          langPrefs.lang,
+    surah_number:  currentSurah?.number || null,
+    user_id:       currentUser?.id || null,
+    created_at:    new Date().toISOString()
+  };
+
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/fahm_feedback`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!r.ok) throw new Error(r.status);
+
+    gtag('event', 'feedback_submitted', { surah_number: currentSurah?.number });
+
+    document.getElementById('feedbackContent').innerHTML = `
+      <div class="feedback-success">
+        <div class="feedback-success-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20,6 9,17 4,12"/>
+          </svg>
+        </div>
+        <p style="font-size:1rem;font-weight:500;color:var(--text-primary);margin:0 0 0.5rem;">Thank you!</p>
+        <p style="font-size:0.875rem;color:var(--text-muted);margin:0 0 1.5rem;">Your feedback has been received. It means a lot.</p>
+        <button onclick="closeFeedback()" style="background:var(--teal);color:white;border:none;border-radius:8px;padding:0.5rem 1.5rem;font-size:0.875rem;cursor:pointer;font-family:var(--sans);">Close</button>
+      </div>`;
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Send feedback'; }
+    alert('Something went wrong. Please try again.');
+  }
+}
+
+function goHome() {
+  closeSidebar();
+  showMobileList();
+}
+
+const HAMBURGER_ICON = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>`;
+
+function syncSidebarBtn() {
+  const btn = document.getElementById('sidebarToggleBtn');
+  if (!btn) return;
+  btn.innerHTML = HAMBURGER_ICON;
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const main = document.getElementById('mainReader');
+  if (window.innerWidth <= 768) {
+    const isOpen = sidebar.classList.toggle('open');
+    overlay.classList.toggle('visible', isOpen);
+  } else {
+    const isCollapsed = sidebar.classList.toggle('collapsed');
+    main.classList.toggle('sidebar-collapsed', isCollapsed);
+  }
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('visible');
+}
+
+function renderReader() {
+  const s = currentSurah;
+  const content = document.getElementById('readerContent');
+  const done = isComplete(s.number);
+  const isBn = langPrefs.lang === 'bn';
+
+  // Use Bangla or English content based on language setting
+  const intro = isBn ? (s.introduction_bn || s.introduction) : s.introduction;
+
+  if (!intro) {
+    content.innerHTML = `
+      <nav class="reader-nav">
+        <span class="nav-breadcrumb"><span>${s.name}</span></span>
+      </nav>
+      <div style="text-align:center; padding: 4rem 2rem; color: var(--text-muted);">
+        <div style="font-size:2.5rem; margin-bottom:1rem; font-family:'Scheherazade New',serif;">${s.arabic}</div>
+        <div style="font-family:var(--serif); font-size:1.1rem; color:var(--text-secondary);">${s.name} · ${t('comingSoon')}</div>
+        <div style="font-size:0.875rem; margin-top:0.5rem;">${num(s.verses)} ${t('verses')} · ${langPrefs.lang === 'bn' ? (s.type === 'Madani' ? 'মাদানী' : 'মক্কী') : s.type}</div>
+      </div>`;
+    return;
+  }
+
+  const revPeriod = getRevelationPeriodLabel(s.number, s.type);
+  const introParas = intro.split('\n\n').map(p => `<p>${p}</p>`).join('');
+  const overviewLabel = isBn ? 'সারসংক্ষেপ' : 'Overview';
+
+  const bismillah = s.number !== 9 ? `
+    <div class="bismillah">
+      <div class="bismillah-arabic">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>
+      <div class="bismillah-translation">${t('bismillah')}</div>
+    </div>` : '';
+
+  const sectionsHTML = s.sections.map((sec, idx) => {
+    const btnId = `audio-btn-${s.number}-${sec.num}`;
+    const progressId = `audio-prog-${s.number}-${sec.num}`;
+
+    const sectionTitle   = isBn ? (sec.title_bn   || sec.title)   : sec.title;
+    const sectionContext = isBn ? (sec.context_bn  || sec.context) : sec.context;
+    const sectionBridge  = isBn ? (sec.bridge_bn   || sec.bridge)  : sec.bridge;
+    const contextLabel   = isBn ? 'ঐতিহাসিক প্রেক্ষাপট' : 'Historical context';
+    const bridgeLabel    = isBn ? 'আয়াতগুলো বোঝা' : 'Understanding these verses';
+    const sectionLabel   = isBn ? 'অংশ' : 'Section';
+
+    const versesHTML = sec.translation.map((t, i) => {
+      const vk = (sec.keys[i] || '').replace(':', '-');
+      const rawKey = sec.keys[i] || '';
+      const sahihText    = sec.sahih        && sec.sahih[i]        ? sec.sahih[i]        : null;
+      const translitText = sec.translit     && sec.translit[i]     ? sec.translit[i]     : null;
+      const bnTaisirText = sec.bn_taisirul  && sec.bn_taisirul[i]  ? sec.bn_taisirul[i]  : null;
+      const bnRawaiText  = sec.bn_rawai     && sec.bn_rawai[i]     ? sec.bn_rawai[i]     : null;
+      return `
+      <div class="verse-row" data-verse-key="${vk}">
+        <span class="verse-key">${verseKey(rawKey)}</span>
+        <div class="verse-content">
+          ${sec.arabic && sec.arabic[i] ? `<div class="verse-arabic">${sec.arabic[i]}</div>` : ''}
+          ${translitText ? `<div class="verse-translit" id="translit-${vk}">${translitText}</div>` : ''}
+          <div class="verse-translation" id="abdel-${vk}">${t}</div>
+          ${sahihText ? `
+            <div class="verse-secondary" id="sahih-${vk}">
+              <div class="verse-secondary-label">Sahih International</div>
+              ${sahihText}
+            </div>` : ''}
+          ${bnTaisirText ? `
+            <div class="verse-bn-primary" id="bn-taisirul-${vk}">
+              ${bnTaisirText}
+            </div>` : ''}
+          ${bnRawaiText ? `
+            <div class="verse-bn-secondary" id="bn-rawai-${vk}">
+              <div class="verse-secondary-label">রাওয়াই আল-বায়ান</div>
+              ${bnRawaiText}
+            </div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    const divider = idx > 0 ? `
+      <div class="section-divider">
+        <div class="section-divider-line"></div>
+        <div class="section-divider-dot"></div>
+        <div class="section-divider-line"></div>
+      </div>` : '';
+
+    return `
+      ${divider}
+      <div class="section-block" data-section-id="${s.number}-${sec.num}">
+        <div class="section-header">
+          <div class="section-title-group">
+            <div class="section-eyebrow">${sectionLabel} ${num(sec.num)}</div>
+            <div class="section-title">${sectionTitle}</div>
+            <div class="section-range">${verseRange(sec.range)}</div>
+          </div>
+          <div class="audio-player">
+            <button class="audio-btn" id="${btnId}"
+              data-keys='${JSON.stringify(sec.keys)}'
+              data-title='${sec.title.replace(/'/g, "&#39;")}'
+              onclick="toggleAudio(${s.number}, ${sec.num}, this.dataset.title, '${btnId}', '${progressId}', JSON.parse(this.dataset.keys))">
+              ${playIcon()}
+            </button>
+            <div class="audio-progress-wrap" id="${progressId}">
+              <div class="audio-progress-fill"></div>
+            </div>
+          </div>
+        </div>
+        <div class="context-block">
+          <svg class="context-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5" r="0.5" fill="currentColor"/></svg>
+          <div>
+            <div class="context-label">${contextLabel}</div>
+            <div class="context-text">${sectionContext}</div>
+          </div>
+        </div>
+        <div class="verses-block">${versesHTML}</div>
+        <div class="bridge-block">
+          <div class="bridge-label">${bridgeLabel}</div>
+          <div class="bridge-text">${sectionBridge}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const markCompleteHTML = `
+    <div class="mark-complete-block">
+      <button class="mark-complete-btn ${done ? 'done' : ''}" id="markCompleteBtn"
+        onclick="${done ? '' : `markComplete(${s.number})`}">
+        ${done
+          ? `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="2.5"><polyline points="2,8 6,12 14,4"/></svg> ${t('completed')}`
+          : `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><polyline points="5,8 7,10 11,6"/></svg> ${t('markComplete')}`
+        }
+      </button>
+      <div class="completion-message ${done ? 'visible' : ''}" id="completionMsg">
+        ${t('youCompleted', s.name)}
+      </div>
+      <button class="next-btn ${done ? 'visible' : ''}" id="nextSurahBtn" onclick="nextSurah()">
+        ${t('continueNext')}
+      </button>
+    </div>`;
+
+  content.innerHTML = `
+    <nav class="reader-nav">
+      <button class="mobile-toggle" id="sidebarToggleBtn" onclick="toggleSidebar()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>
+        </svg>
+      </button>
+      <span class="nav-breadcrumb">
+        <button class="mobile-back-btn" onclick="showMobileList()" id="mobileBackBtn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="10,2 4,8 10,14"/></svg>
+          ${t('allSurahs')}
+        </button>
+        <span id="desktopBreadcrumb"><span>${s.name}</span></span>
+      </span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="nav-feedback-btn" onclick="openFeedback()" aria-label="Send feedback">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="14" y1="2" x2="7" y2="9"/><polygon points="14,2 9,14 7,9 2,7"/></svg>
+        </button>
+        <span class="streak-chip" id="streakChip"></span>
+        <button class="auth-nav-btn" id="authNavBtn" onclick="toggleAuthModal()" aria-label="Sign in">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg><span class="auth-label"> Sign in</span>
+        </button>
+        <div class="display-settings-wrap">
+        <button class="globe-btn" id="globeBtn" onclick="toggleSettingsPanel()" aria-label="Display settings">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="8" r="6.5"/>
+            <ellipse cx="8" cy="8" rx="3" ry="6.5"/>
+            <line x1="1.5" y1="6" x2="14.5" y2="6"/>
+            <line x1="1.5" y1="10" x2="14.5" y2="10"/>
+          </svg>
+          <span id="globeLangLabel" style="font-size:0.7rem;font-weight:600;letter-spacing:0.03em;">${LANG_DEFS[langPrefs.lang].flag}</span>
+        </button>
+        <div class="lang-tooltip" id="langTooltip">
+          Select your language and display preferences
+          <div class="lang-tooltip-arrow"></div>
+        </div>
+        <div class="settings-dropdown" id="settingsDropdown">
+          ${settingsPanelHTML()}
+        </div>
+      </div>
+    </nav>
+
+    <div class="surah-header">
+      <div class="surah-badge">
+        <span class="surah-number-badge">${num(s.number)}</span>
+        ${revPeriod}
+      </div>
+      <div class="surah-arabic-title">${s.arabic}</div>
+      <div class="surah-english-title">${s.name}</div>
+      <div class="surah-meaning">${s.meaning}</div>
+      <div class="surah-stats">
+        <div class="stat">
+          <div class="stat-value">${num(s.verses)}</div>
+          <div class="stat-label">${t('versesLabel')}</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <div class="stat-value">${num(s.sections.length)}</div>
+          <div class="stat-label">${t('sections')}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="intro-block">
+      <div class="intro-label">${overviewLabel}</div>
+      <div class="intro-text">${introParas}</div>
+    </div>
+
+    ${bismillah}
+    ${sectionsHTML}
+    ${markCompleteHTML}
+  `;
+
+  // Refresh auth button state after nav is rebuilt
+  updateAuthUI();
+  // Restore streak chip — the nav span is recreated on every render.
+  updateStreakDisplay(_lastStreakCount);
+  // Re-attach dwell observer so newly rendered section-block elements are watched
+  if (currentUser) setupSectionDwellObserver();
+}
+
+window.addEventListener('scroll', () => {
+  // Don't process scroll events on the mobile surah list screen
+  if (isMobile() && document.getElementById('mobileListScreen').style.display !== 'none') return;
+
+  const main = document.getElementById('mainReader');
+  const scrollTop = window.scrollY;
+  const docHeight = main.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  // Scroll depth tracking — fire once per threshold per surah
+  const thresholds = [25, 50, 75, 100];
+  thresholds.forEach(t => {
+    const key = `scroll_${currentSurah.number}_${t}`;
+    if (pct >= t && !sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, '1');
+      gtag('event', 'scroll_depth', {
+        surah_number: currentSurah.number,
+        surah_name: currentSurah.name,
+        depth_percent: t
+      });
+    }
+  });
+
+  // Section visibility tracking — fire when each section enters viewport
+  document.querySelectorAll('.section-block').forEach(el => {
+    const sectionId = el.dataset.sectionId;
+    if (!sectionId) return;
+    const key = `section_viewed_${sectionId}`;
+    if (sessionStorage.getItem(key)) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.8) {
+      sessionStorage.setItem(key, '1');
+      trackSectionView();
+      gtag('event', 'section_viewed', {
+        surah_number: currentSurah.number,
+        surah_name: currentSurah.name,
+        section_id: sectionId
+      });
+    }
+  });
+});
+
+renderSidebar();
+renderMobileList();
+updateStaticLabels();
+setTimeout(showLangTooltipIfFirstVisit, 1500);
+
+// Load first surah from Supabase on init
+(async () => {
+  try {
+    currentSurah = await fetchSurahFromDB(SURAHS[0].number);
+  } catch(e) {
+    console.error('Failed to load initial surah:', e);
+  }
+  renderSidebar();
+  renderReader();
+  fetchChapterAudio(currentSurah.number); // fire-and-forget
+  applyDisplaySettings();
+  syncSidebarBtn();
+  if (isMobile()) {
+    showMobileList();
+  }
+})();
+</script>
+</body>
+</html>

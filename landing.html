@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fahm — Understand the Message</title>
+  <meta name="description" content="A humble attempt to understand the message of the Quran. Plain language comprehension, historical context, and reflection — 10 minutes at a time.">
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LNCECH8S39"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-LNCECH8S39');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --cream: #F7F3ED;
+      --teal: #1D6A5C;
+      --teal-mid: #2D8C78;
+      --text-primary: #1C1C1A;
+      --text-secondary: #5C574F;
+      --text-muted: #9C9488;
+      --border: rgba(92, 87, 79, 0.15);
+      --serif: 'Lora', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+      --arabic: 'Scheherazade New', 'Traditional Arabic', serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--cream);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── LANG TOGGLE ── */
+    .lang-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding: 1rem 1.5rem 0;
+    }
+    .lang-toggle {
+      display: flex;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .lang-btn {
+      padding: 0.35rem 0.875rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      font-family: var(--sans);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+    .lang-btn.active {
+      background: var(--teal);
+      color: white;
+      border-radius: 20px;
+    }
+
+    /* ── MAIN ── */
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem 1.5rem 2.5rem;
+      max-width: 620px;
+      margin: 0 auto;
+      width: 100%;
+      text-align: center;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2.5rem; }
+    .logo-arabic { font-family: var(--arabic); font-size: 2rem; color: var(--teal); line-height: 1; }
+    .logo-latin  { font-family: var(--serif); font-size: 1.5rem; font-weight: 600; color: var(--teal); }
+
+    .verse-block { margin-bottom: 2rem; }
+    .verse-arabic {
+      font-family: var(--arabic);
+      font-size: 1.4rem;
+      color: var(--text-secondary);
+      line-height: 1.9;
+      margin-bottom: 0.75rem;
+      direction: rtl;
+    }
+    .verse-translation {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+      margin-bottom: 0.35rem;
+    }
+    .verse-reference { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+    .divider { width: 32px; height: 1px; background: var(--border); margin: 2rem auto; }
+
+    .cta-block { display: flex; flex-direction: column; align-items: center; gap: 0.875rem; }
+    .cta-label { font-family: var(--serif); font-size: 1.1rem; font-weight: 500; color: var(--text-primary); line-height: 1.4; }
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.875rem 2.75rem;
+      background: var(--teal);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 2px 12px rgba(29, 106, 92, 0.25);
+    }
+    .cta-btn:hover { background: var(--teal-mid); transform: translateY(-1px); }
+
+    .disclaimer {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+      text-align: left;
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+      margin-top: 0.5rem;
+    }
+    .disclaimer p { margin-bottom: 0.75rem; }
+    .disclaimer p:last-child { margin-bottom: 0; }
+    .name { color: var(--text-secondary); font-style: normal; }
+
+    footer {
+      text-align: center;
+      padding: 1.25rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+    }
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--teal); }
+
+    @media (max-width: 480px) {
+      .page { padding: 1rem 1.25rem 1.5rem; }
+      .logo { margin-bottom: 1.75rem; }
+      .logo-arabic { font-size: 1.5rem; }
+      .logo-latin { font-size: 1.1rem; }
+      .verse-arabic { font-size: 1.1rem; }
+      .cta-label { font-size: 1rem; }
+      .cta-btn { padding: 0.8rem 2.25rem; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Language toggle -->
+<div class="lang-bar">
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btnEn" onclick="setLang('en')">English</button>
+    <button class="lang-btn" id="btnBn" onclick="setLang('bn')">বাংলা</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="logo">
+    <span class="logo-arabic">فَهْم</span>
+    <span class="logo-latin">Fahm</span>
+  </div>
+
+  <div class="verse-block">
+    <div class="verse-arabic">
+      قُل لَّوْ كَانَ ٱلْبَحْرُ مِدَادًا لِّكَلِمَـٰتِ رَبِّى لَنَفِدَ ٱلْبَحْرُ قَبْلَ أَن تَنفَدَ كَلِمَـٰتُ رَبِّى
+    </div>
+    <div class="verse-translation" id="verseTranslation">
+      "Say: if the sea were ink for the words of my Lord, the sea would run dry before the words of my Lord were exhausted."
+    </div>
+    <div class="verse-reference">Surah Al-Kahf · 18:109</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="cta-block">
+    <div class="cta-label" id="ctaLabel">Begin your journey understanding the Quran</div>
+    <a href="/reader" class="cta-btn" id="ctaBtn"
+       onclick="localStorage.setItem('fahm_visited','1'); gtag('event', 'bismillah_clicked', { event_category: 'engagement', event_label: 'landing_cta' });">Bismillāh</a>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="disclaimer" id="disclaimer">
+    <p>
+      The Quran is the speech of Allah ﷻ, <em class="name">Al-'Alim</em> — the All-Knowing — and <em class="name">Al-Hakim</em> — the All-Wise. No translation can fully capture it. No commentary can exhaust it.
+    </p>
+    <p>
+      Fahm is a humble attempt to make its message accessible to those of us who grew up reciting it without fully understanding what we were saying. It is not a scholarly authority — there will be gaps and mistakes. We seek Allah's ﷻ forgiveness for any error, and ask Him to keep us close to the truth.
+    </p>
+  </div>
+
+</div>
+
+<footer>
+  <a href="/privacy">Privacy</a>
+  <a href="/terms">Terms</a>
+  <span>&copy; 2026 Fahm</span>
+</footer>
+
+<script>
+const CONTENT = {
+  en: {
+    verseTranslation: '"Say: if the sea were ink for the words of my Lord, the sea would run dry before the words of my Lord were exhausted."',
+    ctaLabel: 'Begin your journey understanding the Quran',
+    ctaBtn: 'Bismillāh',
+    disclaimer: `<p>The Quran is the speech of Allah ﷻ, <em class="name">Al-'Alim</em> — the All-Knowing — and <em class="name">Al-Hakim</em> — the All-Wise. No translation can fully capture it. No commentary can exhaust it.</p>
+    <p>Fahm is a humble attempt to make its message accessible to those of us who grew up reciting it without fully understanding what we were saying. It is not a scholarly authority — there will be gaps and mistakes. We seek Allah's ﷻ forgiveness for any error, and ask Him to keep us close to the truth.</p>`
+  },
+  bn: {
+    verseTranslation: '"বলুন: যদি সমুদ্র আমার রবের কথাগুলো লেখার কালি হতো, তাহলে আমার রবের কথাগুলো শেষ হওয়ার আগেই সমুদ্র নিঃশেষ হয়ে যেত।"',
+    ctaLabel: 'কুরআন এর বার্তা বুঝার যাত্রা শুরু করুন',
+    ctaBtn: 'বিসমিল্লাহ',
+    disclaimer: `<p>কুরআন হলো আল্লাহ ﷻ-এর বাণী, <em class="name">আল-'আলিম</em> — সর্বজ্ঞ — এবং <em class="name">আল-হাকিম</em> — সর্বপ্রজ্ঞ। কোনো অনুবাদই একে পুরোপুরি ধারণ করতে পারে না। কোনো ব্যাখ্যাই একে সম্পূর্ণ করতে পারে না।</p>
+    <p>Fahm একটি বিনম্র প্রচেষ্টা — তাদের জন্য যারা কুরআন তেলাওয়াত করে বড় হয়েছেন, কিন্তু পুরোপুরি বুঝতে পারেননি। এটি কোনো ধর্মীয় কর্তৃপক্ষ নয় — ভুল থাকতে পারে। আমরা আল্লাহ ﷻ-এর কাছে ক্ষমা চাই এবং তাঁর কাছে প্রার্থনা করি যেন সত্যের কাছাকাছি থাকতে পারি।</p>`
+  }
+};
+
+function setLang(lang) {
+  // Persist to localStorage — reader will pick this up
+  try {
+    const prefs = JSON.parse(localStorage.getItem('fahm_lang_prefs') || '{}');
+    prefs.lang = lang;
+    localStorage.setItem('fahm_lang_prefs', JSON.stringify(prefs));
+  } catch(e) {}
+
+  // Update UI
+  const c = CONTENT[lang];
+  document.getElementById('verseTranslation').textContent = c.verseTranslation;
+  document.getElementById('ctaLabel').textContent = c.ctaLabel;
+  document.getElementById('ctaBtn').textContent = c.ctaBtn;
+  document.getElementById('disclaimer').innerHTML = c.disclaimer;
+  document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+  document.getElementById('btnBn').classList.toggle('active', lang === 'bn');
+
+  gtag('event', 'landing_lang_switch', { language: lang });
+}
+
+// On load — check saved preference, track view
+window.addEventListener('load', function() {
+  gtag('event', 'landing_page_view');
+  try {
+    const prefs = JSON.parse(localStorage.getItem('fahm_lang_prefs') || '{}');
+    if (prefs.lang === 'bn') setLang('bn');
+  } catch(e) {}
+});
+
+// Redirect returning visitors
+if (localStorage.getItem('fahm_visited') || localStorage.getItem('fahm_session')) {
+  window.location.replace('/reader');
+}
+</script>
+</body>
+</html>
