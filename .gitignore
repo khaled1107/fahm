@@ -2,9 +2,11 @@
 __pycache__/
 *.pyc
 .env
-corpus/
-comprehension/
-comprehension_bn/
+corpus/*
+!corpus/chunks.json
+!corpus/transliteration.json
+!corpus/translation_bn_taisirul.json
+!corpus/translation_bn_rawai.json
 dist/
 .netlify/
 fahm_config.json

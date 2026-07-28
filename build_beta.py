@@ -214,19 +214,26 @@ print("\nReading template...")
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
     new_html = f.read()
 
-# Inject config from fahm_config.json if it exists
-config_path = Path("fahm_config.json")
-if config_path.exists():
-    with open(config_path) as f:
-        config = json.load(f)
-    if config.get("supabase_anon_key"):
-        new_html = new_html.replace("{{SUPABASE_ANON_KEY}}", config["supabase_anon_key"])
-        print("  Injected Supabase anon key from fahm_config.json")
-    else:
-        print("  WARNING: supabase_anon_key missing from fahm_config.json")
+# Inject Supabase anon key — prefer env var (Netlify build) over
+# fahm_config.json (local dev convenience, gitignored)
+import os
+anon_key = os.environ.get("SUPABASE_ANON_KEY")
+if anon_key:
+    new_html = new_html.replace("{{SUPABASE_ANON_KEY}}", anon_key)
+    print("  Injected Supabase anon key from SUPABASE_ANON_KEY env var")
 else:
-    print("  WARNING: fahm_config.json not found — Supabase key not injected")
-    print("  Create fahm_config.json with: {\"supabase_anon_key\": \"your_key_here\"}")
+    config_path = Path("fahm_config.json")
+    if config_path.exists():
+        with open(config_path) as f:
+            config = json.load(f)
+        if config.get("supabase_anon_key"):
+            new_html = new_html.replace("{{SUPABASE_ANON_KEY}}", config["supabase_anon_key"])
+            print("  Injected Supabase anon key from fahm_config.json")
+        else:
+            print("  WARNING: supabase_anon_key missing from fahm_config.json")
+    else:
+        print("  WARNING: no SUPABASE_ANON_KEY env var and no fahm_config.json found")
+        print("  Set SUPABASE_ANON_KEY env var, or create fahm_config.json with: {\"supabase_anon_key\": \"your_key_here\"}")
 
 # Write output
 with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
