@@ -2991,8 +2991,16 @@ function toggleSidebar() {
 }
 
 function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('visible');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const main = document.getElementById('mainReader');
+  if (window.innerWidth <= 768) {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('visible');
+  } else {
+    sidebar.classList.add('collapsed');
+    main.classList.add('sidebar-collapsed');
+  }
 }
 
 function renderReader() {
